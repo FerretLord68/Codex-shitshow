@@ -1,0 +1,22 @@
+[project]
+name = "mealhouse"
+version = "1.0.0"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py", "tests.py"]
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [".venv", "*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "S", "DJ"]
+ignore = ["DJ001", "E501", "S101", "S106", "S112"]
+
+[tool.coverage.run]
+branch = true
+source = ["accounts", "audit", "budgets", "catalog", "common", "households", "inventory", "notifications", "offers", "operations", "planning", "recipes", "shopping"]

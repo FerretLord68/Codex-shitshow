@@ -1,0 +1,13 @@
+Django[argon2]==5.2.15
+psycopg[binary]==3.2.12
+gunicorn==23.0.0
+Pillow==12.2.0
+python-magic==0.4.27
+bleach==6.4.0
+httpx==0.28.1
+django-ratelimit==4.1.0
+pytest==9.0.3
+pytest-django==4.11.1
+pytest-cov==7.0.0
+ruff==0.14.8
+pip-audit==2.9.0
