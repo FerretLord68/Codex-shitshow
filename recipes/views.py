@@ -10,8 +10,8 @@ from django.views.decorators.http import require_POST
 from audit.services import audit_event
 from common.decorators import household_permission
 
-from .forms import RecipeForm, RecipeImageForm, RecipeImportForm
-from .models import Recipe, RecipeImage, RecipeInstruction
+from .forms import RecipeForm, RecipeImageForm, RecipeImportForm, RecipeIngredientForm
+from .models import Recipe, RecipeImage, RecipeIngredient, RecipeInstruction
 from .services import import_from_url, normalize_import, sanitize_raster_upload
 
 
@@ -68,6 +68,40 @@ def edit(request, recipe_id):
                     RecipeInstruction.objects.create(recipe=recipe, position=position, text=line.strip())
         return redirect("recipes:detail", recipe_id=recipe.id)
     return render(request, "recipes/form.html", {"form": form, "household": recipe.household})
+
+
+@login_required
+def ingredient_create(request, recipe_id):
+    recipe = get_object_or_404(Recipe, pk=recipe_id)
+    membership = request.user.memberships.filter(household=recipe.household, is_active=True).first()
+    if not membership or (recipe.owner != request.user and not membership.has_permission("recipe.edit")):
+        raise PermissionDenied
+    form = RecipeIngredientForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        line = form.save(commit=False)
+        line.recipe = recipe
+        if line.unit and line.ingredient.default_unit:
+            if line.unit.dimension != line.ingredient.default_unit.dimension:
+                form.add_error("unit", "Unit is incompatible with this ingredient.")
+            else:
+                line.save()
+                return redirect("recipes:detail", recipe_id=recipe.id)
+        else:
+            line.save()
+            return redirect("recipes:detail", recipe_id=recipe.id)
+    return render(request, "recipes/ingredient_form.html", {"form": form, "recipe": recipe})
+
+
+@login_required
+@require_POST
+def ingredient_delete(request, ingredient_id):
+    line = get_object_or_404(RecipeIngredient.objects.select_related("recipe__household"), pk=ingredient_id)
+    membership = request.user.memberships.filter(household=line.recipe.household, is_active=True).first()
+    if not membership or (line.recipe.owner != request.user and not membership.has_permission("recipe.edit")):
+        raise PermissionDenied
+    recipe_id = line.recipe_id
+    line.delete()
+    return redirect("recipes:detail", recipe_id=recipe_id)
 
 
 @login_required

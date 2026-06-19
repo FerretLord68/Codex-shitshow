@@ -85,11 +85,16 @@ def invite(request, household_id):
     return render(request, "households/invite.html", {"form": form, "household": request.household})
 
 
-@login_required
 def accept_invitation(request, token):
     invitation = HouseholdInvitation.find(token)
     if not invitation or not invitation.usable:
         return render(request, "households/invitation_invalid.html", status=410)
+    if not request.user.is_authenticated:
+        return render(
+            request,
+            "households/invitation_sign_in.html",
+            {"invitation": invitation, "invitation_path": request.path},
+        )
     if request.user.email.lower() != invitation.email.lower():
         return render(request, "households/invitation_wrong_account.html", {"email": invitation.email}, status=403)
     if request.method == "POST":
@@ -152,4 +157,3 @@ def transfer_ownership(request, household_id, membership_id):
             request.membership.save(update_fields=["role"])
         audit_event("household.ownership_transferred", actor=request.user, household=request.household, target=target, request=request)
     return redirect("households:detail", household_id=household_id)
-

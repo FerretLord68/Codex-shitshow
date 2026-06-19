@@ -7,6 +7,7 @@ from django.db import transaction
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
@@ -56,11 +57,16 @@ def login_view(request):
         login(request, user)
         request.session.cycle_key()
         audit_event("auth.login_success", actor=user, request=request)
+        next_url = request.POST.get("next") or request.GET.get("next")
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        ):
+            return redirect(next_url)
         return redirect("dashboard")
     if request.method == "POST":
         audit_event("auth.login_failure", request=request, metadata={"email_hash": "redacted"})
         messages.error(request, _("Login failed. Check your details or try again later."))
-    return render(request, "accounts/login.html", {"form": form})
+    return render(request, "accounts/login.html", {"form": form, "next": request.GET.get("next", "")})
 
 
 @login_required

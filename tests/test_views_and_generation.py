@@ -3,7 +3,7 @@ from datetime import date
 import pytest
 from django.urls import reverse
 
-from households.models import HouseholdMemberProfile, Membership
+from households.models import HouseholdInvitation, HouseholdMemberProfile, Membership
 from planning.models import MealPlan, PlannedMeal
 from planning.services import generate_plan
 from recipes.models import Recipe
@@ -67,3 +67,29 @@ def test_final_owner_cannot_delete_account(client, user, household):
     assert response.status_code == 302
     user.refresh_from_db()
     assert user.is_active is True
+
+
+@pytest.mark.django_db
+def test_signed_out_invitee_sees_authentication_choices(client, user, household):
+    _, raw = HouseholdInvitation.issue(household, "invitee@example.test", user)
+    response = client.get(reverse("households:accept_invitation", args=[raw]))
+    assert response.status_code == 200
+    assert reverse("accounts:login") in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_recipe_owner_can_add_ingredient(client, user, household, ingredient, units):
+    recipe = Recipe.objects.create(household=household, owner=user, name="Soup", servings=2)
+    client.force_login(user)
+    response = client.post(
+        reverse("recipes:ingredient_create", args=[recipe.id]),
+        {
+            "ingredient": ingredient.id,
+            "quantity": "500",
+            "unit": units[0].id,
+            "preparation": "chopped",
+            "position": "1",
+        },
+    )
+    assert response.status_code == 302
+    assert recipe.recipe_ingredients.filter(ingredient=ingredient, quantity=500).exists()

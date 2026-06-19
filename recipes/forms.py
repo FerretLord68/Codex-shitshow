@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Recipe
+from .models import Recipe, RecipeIngredient
 
 
 class RecipeForm(forms.ModelForm):
@@ -25,3 +25,9 @@ class RecipeImportForm(forms.Form):
 class RecipeImageForm(forms.Form):
     image = forms.ImageField()
     alt_text = forms.CharField(max_length=250)
+
+
+class RecipeIngredientForm(forms.ModelForm):
+    class Meta:
+        model = RecipeIngredient
+        fields = ("ingredient", "quantity", "unit", "preparation", "optional", "position")
