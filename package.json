@@ -1,0 +1,12 @@
+{
+  "name": "mealhouse-accessibility-tests",
+  "private": true,
+  "scripts": {
+    "test:a11y": "playwright test tests/e2e/accessibility.spec.js"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.11.3",
+    "@playwright/test": "1.61.0"
+  }
+}
+

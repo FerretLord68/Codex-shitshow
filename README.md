@@ -6,7 +6,25 @@ Production URL: <https://codex-shitshow.fejlgoblin.ovh>
 
 The implementation is a modular Django monolith backed by PostgreSQL. A background worker and scheduler use the database-backed Django Tasks framework. Nginx serves the application on port 80 inside an isolated LXD container; the external reverse proxy terminates TLS.
 
-## Status
+## Documentation
 
-Implementation is in progress. See [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+- [Architecture and technology decisions](docs/ARCHITECTURE.md)
+- [Implementation plan and assumptions](docs/IMPLEMENTATION_PLAN.md)
+- [Local development and testing](docs/DEVELOPMENT.md)
+- [Production deployment and reverse proxy](docs/DEPLOYMENT.md)
+- [Operations, backup, restore, update, and rollback](docs/OPERATIONS.md)
+- [Security overview and threat model](docs/SECURITY.md)
+- [Privacy and data-processing overview](docs/PRIVACY.md)
+- [User and administrator guide](docs/USER_GUIDE.md)
+- [Offer providers and recipe imports](docs/INTEGRATIONS.md)
+- [Database and API overview](docs/REFERENCE.md)
+- [Troubleshooting and known limitations](docs/TROUBLESHOOTING.md)
+
+## Quick local test
+
+```bash
+pytest --reuse-db
+```
+
+The production service exposes only HTTP port 80 to the separate TLS-terminating reverse proxy. PostgreSQL and worker services remain private.
 

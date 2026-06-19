@@ -25,8 +25,7 @@
 ## Assumptions
 
 - The external reverse proxy is managed separately and can reach `192.168.1.112:80`.
-- Its exact source IP is not yet known. `TRUSTED_PROXY_CIDRS` will require an explicit value before forwarded client addresses are trusted.
+- The external proxy's preserved source address was verified as `192.168.0.240`; Nginx trusts forwarding headers only from that address.
 - SMTP credentials are unavailable. Email is queued and safely captured to a production spool until SMTP is configured.
 - No grocery-offer source URL was supplied. Live scraping is disabled; mock and validated manual JSON/CSV providers are implemented.
 - Nutrition and prices are estimates and are never medical advice.
-

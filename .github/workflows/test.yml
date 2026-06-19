@@ -1,0 +1,53 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: mealhouse_test
+          POSTGRES_USER: mealhouse
+          POSTGRES_PASSWORD: test-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mealhouse"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      ENVIRONMENT: test
+      DEBUG: "false"
+      SECRET_KEY: test-only-secret-key-not-used-in-production
+      APP_URL: https://codex-shitshow.fejlgoblin.ovh
+      ALLOWED_HOSTS: localhost,testserver
+      TRUSTED_PROXY_CIDRS: 127.0.0.1/32
+      POSTGRES_DB: mealhouse_test
+      POSTGRES_TEST_DB: mealhouse_test
+      POSTGRES_USER: mealhouse
+      POSTGRES_PASSWORD: test-only-password
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: "5432"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: sudo apt-get update && sudo apt-get install -y libmagic1 gettext
+      - run: pip install -r requirements.txt
+      - run: python manage.py migrate --noinput
+      - run: python manage.py makemigrations --check --dry-run
+      - run: ruff check accounts audit budgets catalog common config households inventory notifications offers operations planning recipes shopping tests
+      - run: pytest -q
+      - run: pip-audit -r requirements.txt
+

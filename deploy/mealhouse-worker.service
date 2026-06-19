@@ -1,0 +1,32 @@
+[Unit]
+Description=MealHouse background worker
+After=network-online.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/srv/mealhouse
+EnvironmentFile=/etc/mealhouse/mealhouse.env
+ExecStart=/srv/mealhouse/.venv/bin/python manage.py runworker
+Restart=always
+RestartSec=5
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/var/lib/mealhouse /var/log/mealhouse
+
+[Install]
+WantedBy=multi-user.target
+
