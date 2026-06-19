@@ -1,0 +1,2 @@
+{% extends "base.html" %}{% load i18n %}{% block content %}<h1>{% trans "Notifications" %}</h1>{% for notification in notifications %}<article class="card{% if not notification.read_at %} unread{% endif %}"><h2>{{ notification.title }}</h2><p>{{ notification.body }}</p>{% if not notification.read_at %}<form method="post" action="{% url 'notifications:mark_read' notification.id %}">{% csrf_token %}<button>{% trans "Mark as read" %}</button></form>{% endif %}</article>{% empty %}<p class="empty">{% trans "No notifications." %}</p>{% endfor %}{% endblock %}
+

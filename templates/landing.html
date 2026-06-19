@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% load i18n %}
+{% block content %}
+<section class="hero">
+  <div><p class="eyebrow">{% trans "Less waste. Calmer weeks." %}</p>
+  <h1>{% trans "Plan meals around the food, time and budget you already have." %}</h1>
+  <p>{% trans "MealHouse connects meal plans, recipes, household inventory, shopping lists, offers and nutrition in one clear place." %}</p>
+  <p><a class="button" href="{% url 'accounts:register' %}">{% trans "Start planning" %}</a> <a class="button secondary" href="{% url 'accounts:login' %}">{% trans "Log in" %}</a></p></div>
+  <div class="hero-card" aria-label="{% trans 'Example weekly overview' %}">
+    <h2>{% trans "This week" %}</h2>
+    <p><strong>{% trans "Monday" %}</strong> · Tomato pasta</p>
+    <p><strong>{% trans "Tuesday" %}</strong> · Vegetable curry</p>
+    <p><strong>{% trans "Wednesday" %}</strong> · Leftover bowls</p>
+    <p class="status">✓ {% trans "Uses food expiring soon" %}</p>
+  </div>
+</section>
+<section class="feature-grid">
+  <article><h2>{% trans "Plan simply" %}</h2><p>{% trans "Use day, week, month or custom views and generate sensible suggestions." %}</p></article>
+  <article><h2>{% trans "Shop together" %}</h2><p>{% trans "Shared mobile lists update safely while household members shop." %}</p></article>
+  <article><h2>{% trans "Waste less" %}</h2><p>{% trans "Use inventory first and see food that is close to expiring." %}</p></article>
+</section>
+{% endblock %}
+

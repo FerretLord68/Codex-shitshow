@@ -1,0 +1,1 @@
+{% extends "form_base.html" %}{% load i18n %}{% block form_title %}{% trans "Planned meal" %}{% endblock %}{% block form_extra %}{% if meal %}<input type="hidden" name="version" value="{{ meal.version }}">{% endif %}{% endblock %}

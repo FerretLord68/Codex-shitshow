@@ -1,0 +1,1 @@
+{% extends "form_base.html" %}{% load i18n %}{% block form_title %}{% trans "Log in" %}{% endblock %}{% block submit_label %}{% trans "Log in" %}{% endblock %}{% block form_extra %}<p><a href="{% url 'accounts:password_reset_request' %}">{% trans "Forgot password?" %}</a></p>{% endblock %}

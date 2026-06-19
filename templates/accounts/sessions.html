@@ -1,0 +1,2 @@
+{% extends "base.html" %}{% load i18n %}{% block content %}<div class="narrow"><h1>{% trans "Active sessions" %}</h1>{% for session in sessions %}<article class="card"><p>{{ session.user_agent|default:"Unknown device" }}</p><p>{{ session.ip_address|default:"—" }} · {{ session.last_seen_at }}</p>{% if session.active %}<form method="post" action="{% url 'accounts:revoke_session' session.id %}">{% csrf_token %}<button>{% trans "Revoke" %}</button></form>{% endif %}</article>{% endfor %}</div>{% endblock %}
+

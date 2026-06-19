@@ -1,0 +1,2 @@
+{% extends "base.html" %}{% load i18n %}{% block content %}<h1>{% trans "Background jobs" %}</h1><div class="table-wrap"><table><thead><tr><th>{% trans "Created" %}</th><th>{% trans "Kind" %}</th><th>{% trans "Status" %}</th><th>{% trans "Attempts" %}</th><th>{% trans "Error" %}</th></tr></thead><tbody>{% for job in jobs %}<tr><td>{{ job.created_at }}</td><td>{{ job.kind }}</td><td>{{ job.get_status_display }}</td><td>{{ job.attempts }}</td><td>{{ job.error_type }}</td></tr>{% endfor %}</tbody></table></div>{% endblock %}
+

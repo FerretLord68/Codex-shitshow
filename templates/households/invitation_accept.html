@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% load i18n %}{% block content %}<section class="empty-state"><h1>{% trans "Join household" %}</h1><p>{% blocktrans with name=invitation.household.name %}You are invited to join {{ name }}.{% endblocktrans %}</p><form method="post">{% csrf_token %}<button class="button">{% trans "Accept invitation" %}</button></form></section>{% endblock %}

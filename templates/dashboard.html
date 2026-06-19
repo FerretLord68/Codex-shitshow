@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% trans "Dashboard" %} · MealHouse{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">{% trans "Overview" %}</p><h1>{% trans "Dashboard" %}</h1></div>
+{% if not household %}<a class="button" href="{% url 'households:create' %}">{% trans "Create household" %}</a>{% endif %}</div>
+{% if household %}
+<p class="lead">{{ household.name }}</p>
+<div class="dashboard-grid">
+  <section class="card"><h2>{% trans "Today's meals" %}</h2>{% for meal in today_meals %}<p><strong>{{ meal.meal_type.name_da }}</strong> {{ meal.recipe.name|default:"—" }}</p>{% empty %}<p class="empty">{% trans "No meals planned today." %}</p>{% endfor %}</section>
+  <section class="card"><h2>{% trans "Shopping progress" %}</h2>{% for list in shopping_lists %}<p><a href="{% url 'shopping:detail' list.id %}">{{ list.name }}</a> · {{ list.status }}</p>{% empty %}<p class="empty">{% trans "No active shopping lists." %}</p>{% endfor %}</section>
+  <section class="card"><h2>{% trans "Expiring soon" %}</h2>{% for item in expiring %}<p><strong>{{ item.product_name }}</strong> · {{ item.expiration_date|default:item.best_before_date }}</p>{% empty %}<p class="empty">{% trans "Nothing is expiring soon." %}</p>{% endfor %}</section>
+  <section class="card"><h2>{% trans "Notifications" %}</h2>{% for note in notifications %}<p>{{ note.title }}</p>{% empty %}<p class="empty">{% trans "You are all caught up." %}</p>{% endfor %}</section>
+</div>
+<h2>{% trans "Quick actions" %}</h2>
+<div class="actions">
+  <a class="button" href="{% url 'planning:create' household.id %}">{% trans "New meal plan" %}</a>
+  <a class="button secondary" href="{% url 'recipes:create' household.id %}">{% trans "New recipe" %}</a>
+  <a class="button secondary" href="{% url 'shopping:create' household.id %}">{% trans "New shopping list" %}</a>
+  <a class="button secondary" href="{% url 'inventory:item_create' household.id %}">{% trans "Add inventory" %}</a>
+</div>
+{% else %}<section class="empty-state"><h2>{% trans "Create your first household" %}</h2><p>{% trans "A household keeps meal plans, recipes and shopping private to its members." %}</p></section>{% endif %}
+{% endblock %}
+

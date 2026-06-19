@@ -1,0 +1,6 @@
+Hello {{ display_name }},
+
+Verify your MealHouse account:
+{{ url }}
+
+The link expires soon. If you did not create this account, ignore this message.
