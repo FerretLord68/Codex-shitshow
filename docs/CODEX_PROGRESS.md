@@ -41,11 +41,18 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Fixed active sessions so suspended users immediately lose access.
 - Expanded integration and deployment documentation.
 - Current feature/security suite passes: 40 tests.
+- Final current suite passes: 42 tests.
+- Live Playwright/axe checks pass on landing, login, registration, password reset, and privacy pages: 5 passed.
+- Created production backup `/var/lib/mealhouse/backups/20260620T175215Z`.
+- Created LXD rollback snapshot `mealhouse-prod/pre-91ac425-20260620`.
+- Deployed commit `91ac425`, applied both new migrations, seeded the disabled Salling provider, collected 129 static files, and verified public HTTP/HTTPS plus readiness.
+- Hardened web/worker systemd services from exposure scores 6.2/6.3 (medium) to 2.8 (OK).
+- Enabled persistent host UFW with SSH, proxy HTTP, LXD DNS/DHCP, and LXD outbound rules.
 
 ## Current work in progress
 
 - Reviewing the first implementation checkpoint before commit.
-- Preparing production backup, deployment synchronization, migrations, systemd/Nginx validation, and firewall changes.
+- Applying operating-system updates, completing final documentation/checks, and preparing reboot verification.
 
 ## Remaining work
 
@@ -103,27 +110,32 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## System files changed
 
-- None yet.
+- Host UFW configuration under `/etc/ufw`; backup at `/var/backups/mealhouse-firewall/20260620T1757Z`.
+- Container systemd units: `/etc/systemd/system/mealhouse-{web,worker,scheduler}.service`.
+- Container Nginx site: `/etc/nginx/sites-available/mealhouse`.
+- Container configuration backup: `/var/lib/mealhouse/config-backups/20260620T1802Z`.
 
 ## Service changes
 
-- None yet.
+- Web and worker restarted successfully after deployment and hardening.
+- Nginx reloaded after validated timeout configuration.
+- Scheduler and backup timers remain enabled.
 
 ## Firewall state
 
-- Host UFW inactive.
+- Host UFW active and enabled.
 - Container UFW inactive.
-- LXD-managed nftables rules provide forwarding/NAT for the container and host port 80.
+- LXD-managed nftables rules continue to provide forwarding/NAT for the container and host port 80.
 - SSH listens on host TCP 22 over IPv4 and IPv6.
 
 ## Database migrations
 
 - Existing initial migrations are fully applied.
-- Added unapplied `catalog.0002_store_location_fields` and `offers.0002_salling_offer_fields`.
+- Added and applied `catalog.0002_store_location_fields` and `offers.0002_salling_offer_fields` successfully in production.
 
 ## Git commits created
 
-- None in this work session yet.
+- `91ac425 feat: add secure mail and Salling integrations`
 
 ## Last known good state
 
@@ -134,9 +146,8 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Exact next steps
 
-1. Run final checkpoint checks and commit the application changes.
-2. Create a fresh production backup and LXD snapshot.
-3. Synchronize `/srv/mealhouse`, apply migrations, seed providers, collect static files, and restart services.
-4. Validate Nginx/systemd and configure the host firewall with rollback.
-5. Obtain protected owner credentials, verify integrations, and bootstrap the administrator.
-6. Run accessibility/live verification, finalize documentation, commit, push, and reboot-test.
+1. Commit systemd, Nginx, firewall documentation, and updated progress.
+2. Apply available host/container operating-system updates.
+3. Run full final checks and push the branch.
+4. Reboot and verify UFW, LXD, Nginx, PostgreSQL, web, worker, timers, HTTP, DNS, and outbound connectivity.
+5. Obtain protected owner credentials, verify SMTP/Salling, and bootstrap the administrator.

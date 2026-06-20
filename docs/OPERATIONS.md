@@ -46,3 +46,36 @@ Verify checksums, `manage.py check`, migration status, row counts, a login, an i
 
 Application logs are structured JSON in the system journal. Tokens, passwords, request bodies, and sensitive dietary information are excluded. Use request IDs to correlate Nginx and application events.
 
+## Host firewall
+
+The host uses persistent UFW rules with default deny for incoming and routed traffic and default allow for host outbound traffic:
+
+- TCP 22 from IPv4/IPv6 for SSH.
+- TCP 80 from the external proxy `192.168.0.240`.
+- Routed TCP 80 from that proxy to the LXD container `10.241.159.210`.
+- LXD bridge DNS (TCP/UDP 53) and DHCP (UDP 67).
+- Routed outbound traffic from `10.241.159.0/24` through `ens18`; established return traffic is statefully allowed.
+
+Verify:
+
+```bash
+sudo ufw status verbose
+ss -tnlp
+curl -I https://codex-shitshow.fejlgoblin.ovh/
+lxc exec mealhouse-prod -- getent ahosts api.sallinggroup.com
+```
+
+The pre-change UFW archive and firewall dumps are under `/var/backups/mealhouse-firewall/20260620T1757Z` on the host. Emergency rollback:
+
+```bash
+sudo ufw disable
+sudo tar -C / -xzf /var/backups/mealhouse-firewall/20260620T1757Z/etc-ufw.tar.gz
+sudo ufw --force enable
+```
+
+The final `enable` restores the previous saved UFW state, which was inactive. If remote access is uncertain, use console access or arm a timed rollback before changing rules:
+
+```bash
+sudo systemd-run --unit=mealhouse-firewall-rollback --on-active=2m \
+  /usr/sbin/ufw --force disable
+```

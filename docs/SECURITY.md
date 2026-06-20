@@ -35,11 +35,13 @@ Authentication forms, household invitations, all object identifiers, recipe impo
 - Upload ownership, randomized names, size/signature checks, raster re-encoding, and private storage.
 - Append-only application audit events and explicit time-limited support access records.
 - Least-privilege PostgreSQL role and hardened systemd services.
+- Persistent host UFW policy permitting only SSH and proxy-originated MealHouse HTTP ingress.
 - Production debug guard and generic error pages.
 
 ## Remaining risks
 
 - The external proxy and its TLS/firewall configuration are outside this host.
+- SSH password authentication remains enabled because key-only access has not been independently verified; migrate to tested key-only access before disabling it.
 - E-mail spool mode is operationally safe but does not deliver messages until SMTP is configured.
 - Nutrition, price, and unit-conversion source quality varies.
 - Python process isolation is not a substitute for host patching.
@@ -49,4 +51,3 @@ Authentication forms, household invitations, all object identifiers, recipe impo
 ## Security response
 
 Revoke sessions, disable compromised accounts/providers, preserve minimized logs, rotate secrets, patch dependencies, and document scope. Never include raw tokens or household health data in incident tickets.
-
