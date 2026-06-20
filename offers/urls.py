@@ -5,8 +5,8 @@ from . import views
 app_name = "offers"
 urlpatterns = [
     path("", views.offer_list, name="list"),
+    path("images/", views.image_proxy, name="image_proxy"),
     path("providers/", views.provider_admin, name="providers"),
     path("providers/<uuid:provider_id>/sync/", views.synchronize, name="synchronize"),
     path("import/", views.manual_import, name="manual_import"),
 ]
-

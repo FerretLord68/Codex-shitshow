@@ -89,21 +89,60 @@ def synchronize_provider(provider_id):
         adapter_class = PROVIDER_TYPES.get(provider.kind)
         if not adapter_class:
             raise ValueError("Provider requires an approved adapter.")
-        for record in adapter_class().fetch():
-            store, _ = Store.objects.get_or_create(name="Mock store", defaults={"currency": record["currency"]})
+        adapter = adapter_class(provider) if provider.kind == OfferProvider.Kind.SALLING_GROUP else adapter_class()
+        for record in adapter.fetch():
+            store_data = record.get("store", {})
+            external_store_id = store_data.get("external_id")
+            if external_store_id:
+                store = Store.objects.filter(
+                    provider_identifiers__salling_group=external_store_id
+                ).first()
+                if not store:
+                    store = Store(provider_identifiers={"salling_group": external_store_id})
+                store.name = store_data["name"]
+                store.chain = store_data.get("chain", "")
+                store.address = store_data.get("street", "")
+                store.postal_code = store_data.get("postal_code", "")
+                store.city = store_data.get("city", "")
+                store.latitude = store_data.get("latitude")
+                store.longitude = store_data.get("longitude")
+                store.opening_hours = store_data.get("opening_hours", [])
+                store.currency = record["currency"]
+                store.save()
+            else:
+                store, _ = Store.objects.get_or_create(
+                    name=record.get("store_name", "Mock store"),
+                    defaults={"currency": record["currency"]},
+                )
             product, _ = Product.objects.get_or_create(
-                name=record["product_name"], brand=record.get("brand", ""), defaults={"category": record.get("category", "")}
+                name=record["product_name"],
+                brand=record.get("brand", ""),
+                defaults={
+                    "category": record.get("category", ""),
+                    "barcode": record.get("external_product_id", ""),
+                },
             )
             offer, _ = GroceryOffer.objects.update_or_create(
                 provider=provider,
-                source_identifier=record["source_identifier"],
-                starts_at=record["starts_at"],
+                source_identifier=record.get("source_identifier", record.get("external_offer_id")),
+                starts_at=record.get("starts_at", record.get("valid_from")),
                 defaults={
                     "store": store, "product": product, "product_name": product.name,
                     "brand": product.brand, "category": product.category,
-                    "regular_price": record.get("regular_price"), "offer_price": record["offer_price"],
-                    "currency": record["currency"], "ends_at": record["ends_at"],
-                    "original_source_text": record["original_source_text"], "retrieved_at": timezone.now(),
+                    "description": record.get("description", ""),
+                    "regular_price": record.get("regular_price", record.get("original_price")),
+                    "offer_price": record["offer_price"],
+                    "discount_amount": record.get("discount_amount"),
+                    "discount_percentage": record.get("discount_percentage"),
+                    "quantity": record.get("quantity"),
+                    "unit": record.get("unit", ""),
+                    "currency": record["currency"],
+                    "ends_at": record.get("ends_at", record.get("valid_until")),
+                    "image_url": record.get("image_url", ""),
+                    "product_identifier": record.get("external_product_id", ""),
+                    "original_source_text": record.get("original_source_text", record["product_name"]),
+                    "retrieved_at": timezone.now(),
+                    "raw_source_timestamp": record.get("raw_source_timestamp"),
                 },
             )
             PriceRecord.objects.get_or_create(

@@ -12,7 +12,11 @@ class ActiveSessionMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.user.is_authenticated and request.session.session_key:
+        if request.user.is_authenticated and (
+            not request.user.is_active or request.user.is_suspended
+        ):
+            logout(request)
+        elif request.user.is_authenticated and request.session.session_key:
             digest = UserSession.hash_key(request.session.session_key)
             tracked = UserSession.objects.filter(user=request.user, session_key_hash=digest).first()
             if tracked and not tracked.active:
@@ -30,4 +34,3 @@ class ActiveSessionMiddleware:
                     expires_at=timezone.now() + timedelta(seconds=settings.SESSION_COOKIE_AGE),
                 )
         return self.get_response(request)
-

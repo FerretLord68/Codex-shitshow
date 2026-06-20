@@ -11,6 +11,7 @@ class OfferProvider(UUIDModel, TimeStampedModel):
         MANUAL = "manual", "Manual import"
         API = "api", "Official API"
         FEED = "feed", "Official feed"
+        SALLING_GROUP = "salling_group", "Salling Group"
 
     name = models.CharField(max_length=150)
     kind = models.CharField(max_length=20, choices=Kind.choices)
@@ -35,12 +36,17 @@ class GroceryOffer(UUIDModel, TimeStampedModel):
     regular_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     offer_price = models.DecimalField(max_digits=12, decimal_places=2)
     unit_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    discount_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    discount_percentage = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    quantity = models.DecimalField(max_digits=12, decimal_places=3, null=True, blank=True)
+    unit = models.CharField(max_length=50, blank=True)
     currency = models.CharField(max_length=3, default="DKK")
     starts_at = models.DateTimeField()
     ends_at = models.DateTimeField()
     source_url = models.URLField(blank=True)
     image_url = models.URLField(blank=True)
     retrieved_at = models.DateTimeField(default=timezone.now)
+    raw_source_timestamp = models.DateTimeField(null=True, blank=True)
     source_identifier = models.CharField(max_length=200)
     product_identifier = models.CharField(max_length=200, blank=True)
     original_source_text = models.TextField()
@@ -84,4 +90,3 @@ class PriceRecord(UUIDModel, TimeStampedModel):
     observed_at = models.DateTimeField(default=timezone.now)
     source = models.CharField(max_length=30)
     offer = models.ForeignKey(GroceryOffer, on_delete=models.SET_NULL, null=True, blank=True)
-

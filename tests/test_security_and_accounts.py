@@ -104,3 +104,13 @@ def test_invitation_email_uses_canonical_https_url(client, user, household):
     assert queued.call_args.args[3]["url"].startswith(
         "https://codex-shitshow.fejlgoblin.ovh/households/invitations/"
     )
+
+
+@pytest.mark.django_db
+def test_suspended_user_loses_existing_session(client, user):
+    client.force_login(user)
+    user.is_suspended = True
+    user.save(update_fields=["is_suspended"])
+    response = client.get(reverse("dashboard"))
+    assert response.status_code == 302
+    assert response.url.startswith(reverse("accounts:login"))

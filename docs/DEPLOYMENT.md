@@ -46,10 +46,22 @@ lxc exec mealhouse-prod -- journalctl -u mealhouse-web -u mealhouse-worker
 Run interactively:
 
 ```bash
-lxc exec mealhouse-prod -- sudo -u www-data /srv/mealhouse/.venv/bin/python /srv/mealhouse/manage.py bootstrap_admin
+lxc exec mealhouse-prod -- sudo -u www-data /srv/mealhouse/.venv/bin/python /srv/mealhouse/manage.py create_admin
 ```
 
-The command validates password strength, does not echo or log the password, refuses to run after an administrator exists, and writes an audit event.
+The default address is `frederikjuulolsen@gmail.com`. The command validates and normalizes the address, hides and confirms the password, applies the Django password policy and Argon2id, and uses a transaction. If the account already exists, it requires explicit confirmation before upgrading it. It refuses to run after an administrator exists and writes a sanitized audit event.
+
+## Protected integration values
+
+Edit `/etc/mealhouse/mealhouse.env` as root. Never place real values in the repository:
+
+```bash
+sudoedit /etc/mealhouse/mealhouse.env
+chown root:www-data /etc/mealhouse/mealhouse.env
+chmod 0640 /etc/mealhouse/mealhouse.env
+```
+
+Set SMTP and Salling variables documented in `docs/INTEGRATIONS.md`, validate with `manage.py check --deploy`, then restart the web and worker services. Keep the Salling provider disabled until the API token is verified.
 
 ## Firewall
 

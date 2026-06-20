@@ -1,1 +1,24 @@
-{% extends "base.html" %}{% load i18n %}{% block content %}<h1>{% trans "Grocery offers" %}</h1><p class="notice">{% trans "Offers are shown only from configured authorized providers. Prices and availability may change." %}</p><div class="card-grid">{% for offer in offers %}<article class="card"><p class="eyebrow">{{ offer.store.name }}</p><h2>{{ offer.product_name }}</h2><p class="price">{{ offer.offer_price }} {{ offer.currency }}</p><p>{% trans "Ends" %} {{ offer.ends_at|date:"SHORT_DATE_FORMAT" }}</p></article>{% empty %}<p class="empty">{% trans "No current offers. A live provider has not been configured." %}</p>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block content %}
+<div class="page-heading"><div><h1>{% trans "Offers" %}</h1><p class="lead">{% trans "Current grocery offers, ordered by expiry." %}</p></div>{% if user.is_staff %}<div class="actions"><a class="button secondary" href="{% url 'offers:providers' %}">{% trans "Providers" %}</a><a class="button secondary" href="{% url 'offers:manual_import' %}">{% trans "Import" %}</a></div>{% endif %}</div>
+<form method="get" class="search" role="search">
+  <div class="field"><label for="offer-q">{% trans "Search offers" %}</label><input id="offer-q" name="q" value="{{ query }}" placeholder="{% trans 'Product, brand or category' %}"></div>
+  <div class="field"><label for="offer-chain">{% trans "Store chain" %}</label><select id="offer-chain" name="chain"><option value="">{% trans "All chains" %}</option>{% for value in chains %}<option value="{{ value }}"{% if value == chain %} selected{% endif %}>{{ value|title }}</option>{% endfor %}</select></div>
+  <button>{% trans "Search" %}</button>
+</form>
+<div class="card-grid">
+{% for offer in offers %}
+  <article class="card">
+    {% if offer.image_url %}<img class="offer-image" src="{% url 'offers:image_proxy' %}?url={{ offer.image_url|urlencode }}" alt="" loading="lazy">{% endif %}
+    <h2>{{ offer.product_name }}</h2>
+    <p>{{ offer.store.name }}{% if offer.store.city %} · {{ offer.store.city }}{% endif %}</p>
+    <p><span class="price">{{ offer.offer_price }} {{ offer.currency }}</span>{% if offer.regular_price %} <s>{{ offer.regular_price }} {{ offer.currency }}</s>{% endif %}</p>
+    {% if offer.discount_percentage %}<p>{{ offer.discount_percentage }}% {% trans "discount" %}</p>{% endif %}
+    <p class="status">{% trans "Valid until" %} {{ offer.ends_at|date:"SHORT_DATETIME_FORMAT" }}</p>
+  </article>
+{% empty %}
+  <div class="empty-state"><h2>{% trans "No offers found" %}</h2><p>{% trans "Try changing the search filters or check again later." %}</p></div>
+{% endfor %}
+</div>
+{% if page.has_other_pages %}<nav class="pagination" aria-label="{% trans 'Offer pages' %}">{% if page.has_previous %}<a href="?q={{ query|urlencode }}&chain={{ chain|urlencode }}&page={{ page.previous_page_number }}">{% trans "Previous" %}</a>{% endif %}<span>{% blocktrans with current=page.number total=page.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>{% if page.has_next %}<a href="?q={{ query|urlencode }}&chain={{ chain|urlencode }}&page={{ page.next_page_number }}">{% trans "Next" %}</a>{% endif %}</nav>{% endif %}
+{% endblock %}

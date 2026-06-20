@@ -89,6 +89,11 @@ class Store(UUIDModel, TimeStampedModel):
     name = models.CharField(max_length=150)
     chain = models.CharField(max_length=150, blank=True)
     address = models.TextField(blank=True)
+    postal_code = models.CharField(max_length=20, blank=True, db_index=True)
+    city = models.CharField(max_length=100, blank=True, db_index=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    opening_hours = models.JSONField(default=list, blank=True)
     website = models.URLField(blank=True)
     provider_identifiers = models.JSONField(default=dict, blank=True)
     active = models.BooleanField(default=True)
@@ -116,4 +121,3 @@ class ProductAlias(UUIDModel, TimeStampedModel):
     def save(self, *args, **kwargs):
         self.normalized = " ".join(self.alias.lower().split())
         return super().save(*args, **kwargs)
-

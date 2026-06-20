@@ -17,6 +17,16 @@ def env_bool(name, default=False):
     return str(env(name, str(default))).lower() in {"1", "true", "yes", "on"}
 
 
+def env_int(name, default, *, minimum=None):
+    try:
+        value = int(env(name, default))
+    except (TypeError, ValueError) as error:
+        raise ImproperlyConfigured(f"{name} must be an integer") from error
+    if minimum is not None and value < minimum:
+        raise ImproperlyConfigured(f"{name} must be at least {minimum}")
+    return value
+
+
 ENVIRONMENT = env("ENVIRONMENT", "development")
 DEBUG = env_bool("DEBUG", False)
 if ENVIRONMENT == "production" and DEBUG:
@@ -119,7 +129,6 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "Europe/Copenhagen"
 USE_I18N = True
 USE_TZ = True
-FORMS_URLFIELD_ASSUME_HTTPS = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = Path(env("STATIC_ROOT", BASE_DIR / "staticfiles"))
@@ -160,8 +169,38 @@ SILENCED_SYSTEM_CHECKS = [
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 EMAIL_BACKEND = env("EMAIL_BACKEND", "django.core.mail.backends.filebased.EmailBackend")
 EMAIL_FILE_PATH = Path(env("EMAIL_FILE_PATH", "/var/lib/mealhouse/email-spool"))
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "MealHouse <no-reply@codex-shitshow.fejlgoblin.ovh>")
+SMTP_HOST = env("SMTP_HOST", "")
+SMTP_PORT = env_int("SMTP_PORT", 587, minimum=1)
+SMTP_SECURE = env_bool("SMTP_SECURE", False)
+SMTP_USERNAME = env("SMTP_USERNAME", "")
+SMTP_PASSWORD = env("SMTP_PASSWORD", "")
+SMTP_FROM_ADDRESS = env("SMTP_FROM_ADDRESS", "")
+SMTP_FROM_NAME = env("SMTP_FROM_NAME", "MealHouse")
+SMTP_CONNECTION_TIMEOUT_MS = env_int("SMTP_CONNECTION_TIMEOUT_MS", 10000, minimum=1000)
+SMTP_SEND_TIMEOUT_MS = env_int("SMTP_SEND_TIMEOUT_MS", 15000, minimum=1000)
+EMAIL_HOST = SMTP_HOST
+EMAIL_PORT = SMTP_PORT
+EMAIL_HOST_USER = SMTP_USERNAME
+EMAIL_HOST_PASSWORD = SMTP_PASSWORD
+EMAIL_USE_SSL = SMTP_SECURE
+EMAIL_USE_TLS = not SMTP_SECURE
+EMAIL_TIMEOUT = max(SMTP_CONNECTION_TIMEOUT_MS, SMTP_SEND_TIMEOUT_MS) / 1000
+DEFAULT_FROM_EMAIL = env(
+    "DEFAULT_FROM_EMAIL",
+    f"{SMTP_FROM_NAME} <{SMTP_FROM_ADDRESS}>" if SMTP_FROM_ADDRESS else "MealHouse <no-reply@localhost>",
+)
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
+if ENVIRONMENT == "production" and EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend":
+    for required_name, required_value in (
+        ("SMTP_HOST", SMTP_HOST),
+        ("SMTP_USERNAME", SMTP_USERNAME),
+        ("SMTP_PASSWORD", SMTP_PASSWORD),
+        ("SMTP_FROM_ADDRESS", SMTP_FROM_ADDRESS),
+    ):
+        if not required_value:
+            raise ImproperlyConfigured(f"Required environment variable {required_name} is missing")
+    if not SMTP_FROM_ADDRESS.lower().endswith("@taxoz.org"):
+        raise ImproperlyConfigured("SMTP_FROM_ADDRESS must use the authorized taxoz.org domain")
 
 LOGGING = {
     "version": 1,
@@ -177,6 +216,22 @@ LOGGING = {
 }
 
 OFFER_SOURCE_URL = env("OFFER_SOURCE_URL", "")
-MAX_IMAGE_BYTES = int(env("MAX_IMAGE_BYTES", 5 * 1024 * 1024))
-SECURITY_TOKEN_TTL_SECONDS = int(env("SECURITY_TOKEN_TTL_SECONDS", 3600))
-INVITATION_TTL_SECONDS = int(env("INVITATION_TTL_SECONDS", 604800))
+SALLING_GROUP_API_TOKEN = env("SALLING_GROUP_API_TOKEN", "")
+SALLING_GROUP_API_BASE_URL = env("SALLING_GROUP_API_BASE_URL", "https://api.sallinggroup.com").rstrip("/")
+SALLING_GROUP_REQUEST_TIMEOUT_MS = env_int("SALLING_GROUP_REQUEST_TIMEOUT_MS", 10000, minimum=1000)
+SALLING_GROUP_CACHE_TTL_SECONDS = env_int("SALLING_GROUP_CACHE_TTL_SECONDS", 300, minimum=1)
+SALLING_GROUP_MAX_RETRIES = env_int("SALLING_GROUP_MAX_RETRIES", 2, minimum=0)
+SALLING_GROUP_IMAGE_HOSTS = {
+    value.strip().lower()
+    for value in env("SALLING_GROUP_IMAGE_HOSTS", "dam.dsg.dk").split(",")
+    if value.strip()
+}
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "mealhouse-runtime-cache",
+    }
+}
+MAX_IMAGE_BYTES = env_int("MAX_IMAGE_BYTES", 5 * 1024 * 1024, minimum=1024)
+SECURITY_TOKEN_TTL_SECONDS = env_int("SECURITY_TOKEN_TTL_SECONDS", 3600, minimum=300)
+INVITATION_TTL_SECONDS = env_int("INVITATION_TTL_SECONDS", 604800, minimum=3600)

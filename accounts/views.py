@@ -133,6 +133,13 @@ def password_reset_confirm(request, token):
             user.save(update_fields=["last_password_change_at"])
             UserSession.objects.filter(user=user, revoked_at__isnull=True).update(revoked_at=timezone.now())
         audit_event("account.password_reset", actor=user, request=request)
+        queue_email(
+            user.email,
+            _("Your MealHouse password was reset"),
+            "email/password_reset_complete.txt",
+            {"user": user},
+            dedupe_key=f"password-reset-complete:{user.id}:{user.last_password_change_at.isoformat()}",
+        )
         return redirect("accounts:login")
     return render(request, "accounts/password_reset_confirm.html", {"form": form})
 
@@ -159,6 +166,13 @@ def password_change(request):
         UserSession.objects.filter(user=user).exclude(session_key_hash=current_hash).update(revoked_at=timezone.now())
         request.session.cycle_key()
         audit_event("account.password_changed", actor=user, request=request)
+        queue_email(
+            user.email,
+            _("Your MealHouse password was changed"),
+            "email/password_changed.txt",
+            {"user": user},
+            dedupe_key=f"password-changed:{user.id}:{user.last_password_change_at.isoformat()}",
+        )
         return redirect("accounts:sessions")
     return render(request, "accounts/password_change.html", {"form": form})
 

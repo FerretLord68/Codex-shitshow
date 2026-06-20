@@ -28,3 +28,4 @@ pytest --reuse-db
 
 The production service exposes only HTTP port 80 to the separate TLS-terminating reverse proxy. PostgreSQL and worker services remain private.
 
+Operational setup for SMTP, Salling Group, administrator bootstrap, firewall, backups, and deployment is documented under `docs/`. Current multi-session implementation state and exact recovery steps are tracked in `docs/CODEX_PROGRESS.md`.

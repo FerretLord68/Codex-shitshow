@@ -48,12 +48,11 @@ def finish_job(job, error=None):
         job.error_message = ""
     else:
         job.error_type = type(error).__name__
-        job.error_message = str(error)[:500]
-        if job.attempts >= job.max_attempts:
+        job.error_message = "Operation failed; see structured logs."
+        if job.attempts >= job.max_attempts or getattr(error, "retryable", True) is False:
             job.status = BackgroundJob.Status.DEAD
         else:
             job.status = BackgroundJob.Status.PENDING
             job.run_after = timezone.now() + timedelta(seconds=min(3600, 2 ** job.attempts * 15))
         logger.exception("background_job_failed", extra={"event": "background_job_failed", "job_id": job.id})
     job.save()
-

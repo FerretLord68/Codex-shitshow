@@ -33,7 +33,14 @@ Additional checks:
 .venv/bin/pip-audit -r requirements.txt
 ```
 
-The test suite uses the mock offer provider and never contacts a production grocery site.
+The test suite uses mocked Salling and mail transports and never contacts production integration endpoints.
+
+When running tests inside a least-privilege production-like PostgreSQL environment, create the disposable test database as the PostgreSQL administrator instead of granting `CREATEDB` to the application role:
+
+```bash
+sudo -u postgres createdb --owner=mealhouse mealhouse_test
+sudo -u www-data /srv/mealhouse/.venv/bin/pytest --reuse-db
+```
 
 ## Project structure
 
@@ -50,4 +57,3 @@ Create migrations only after reviewing model changes:
 ```
 
 Prefer additive changes. Back up production before schema changes. Reversing a migration must be reviewed for data loss; do not blindly migrate backward.
-

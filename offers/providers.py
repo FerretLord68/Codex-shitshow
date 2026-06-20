@@ -4,6 +4,8 @@ from decimal import Decimal
 
 from django.utils import timezone
 
+from .salling import SallingClient
+
 
 class OfferProviderAdapter(ABC):
     @abstractmethod
@@ -44,5 +46,19 @@ class ManualProvider(OfferProviderAdapter):
             yield record
 
 
-PROVIDER_TYPES = {"mock": MockProvider}
+class SallingGroupProvider(OfferProviderAdapter):
+    def __init__(self, provider):
+        self.provider = provider
 
+    def fetch(self):
+        configuration = self.provider.configuration
+        result = SallingClient(base_url=self.provider.base_url or None).food_waste(
+            zip_code=configuration.get("zip"),
+            geo=configuration.get("geo"),
+            radius=configuration.get("radius"),
+            store_id=configuration.get("store_id"),
+        )
+        return result.items
+
+
+PROVIDER_TYPES = {"mock": MockProvider, "salling_group": SallingGroupProvider}

@@ -43,5 +43,15 @@ class Command(BaseCommand):
             for alias in aliases:
                 IngredientAlias.objects.get_or_create(locale="da" if alias in {"tomater", "løg", "æg"} else "en", normalized=" ".join(alias.lower().split()), defaults={"ingredient": ingredient, "alias": alias})
         OfferProvider.objects.get_or_create(name="Development mock offers", kind="mock", defaults={"enabled": False, "attribution": "Synthetic development data"})
+        OfferProvider.objects.get_or_create(
+            name="Salling Group anti-food-waste offers",
+            kind="salling_group",
+            defaults={
+                "base_url": "https://api.sallinggroup.com",
+                "enabled": False,
+                "configuration": {"zip": "8000"},
+                "rate_limit_per_hour": 400,
+                "attribution": "Salling Group Anti Food Waste API",
+            },
+        )
         self.stdout.write(self.style.SUCCESS("Reference data is ready."))
-

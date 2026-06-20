@@ -1,9 +1,8 @@
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
 from django.utils import timezone
 
 from operations.services import enqueue
 
+from .mail import deliver
 from .models import Notification
 
 
@@ -24,9 +23,7 @@ def queue_email(to, subject, template, context, *, dedupe_key):
 
 
 def deliver_email(payload):
-    body = render_to_string(payload["template"], payload["context"])
-    message = EmailMultiAlternatives(subject=payload["subject"], body=body, to=[payload["to"]])
-    message.send(fail_silently=False)
+    return deliver(payload)
 
 
 def notify(user, kind, title, body="", household=None, action_url=""):
@@ -55,4 +52,3 @@ def create_expiration_notifications():
                     item.household,
                     "/inventory/",
                 )
-
