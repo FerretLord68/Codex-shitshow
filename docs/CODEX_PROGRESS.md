@@ -81,7 +81,8 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Current work in progress
 
-- Final documentation, commit, branch push, and merge to `main`.
+- Repository and deployment work is complete. Only externally blocked SMTP
+  credentials and Salling API permission remain.
 
 ## Remaining work
 
@@ -147,8 +148,8 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 - Production is live and returns HTTP 200 through the host LAN address.
 - Container services Nginx, PostgreSQL, `mealhouse-web`, `mealhouse-worker`, scheduler timer, and backup timer are active.
-- Production source under `/srv/mealhouse` is a detached clean checkout at
-  `66c2150`.
+- Production source under `/srv/mealhouse` tracks the final verified `main`
+  commit as a detached clean checkout.
 
 ## System files changed
 
@@ -201,7 +202,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Exact next steps
 
-1. Commit the final tests and documentation.
-2. Push the working branch, merge to `main`, rerun checks, and push `main`.
-3. Repeat SMTP and Anti Food Waste verification after the two external
-   credential/scope issues are corrected.
+1. Correct the SMTP credential and rerun `manage.py verify_smtp --send`.
+2. Grant Salling Anti Food Waste permission and rerun
+   `manage.py verify_salling --zip 9000`.
+3. Enable and synchronize the Salling provider only after step 2 succeeds.
