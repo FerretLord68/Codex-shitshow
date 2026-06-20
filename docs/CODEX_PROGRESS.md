@@ -81,23 +81,22 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Current work in progress
 
-- Repository and deployment work is complete. Only externally blocked SMTP
-  credentials and Salling API permission remain.
+- Final Git deployment and branch cleanup after successful SMTP completion and
+  correction of the production static-file alias.
 
 ## Remaining work
 
-- Push the working branch, merge to `main`, verify, and push `main`.
-- SMTP test delivery and real reset mail remain blocked by rejected credentials.
 - Salling offer synchronization remains blocked by missing Anti Food Waste
   permission on the configured token.
+- Commit and deploy the static-file configuration correction and final
+  operational documentation.
 
 ## Owner questions
 
-- Replace/correct the SMTP credential: authentication returns `535` on both
-  ports 587 and 465.
 - Grant Anti Food Waste API permission to the Salling token or provide a token
-  with that permission. Stores API authentication succeeds; food waste returns
-  `403`.
+  with production-environment access. Stores API authentication succeeds; the
+  API still explicitly reports that the current token scope does not grant
+  `prod` access to `GET /v1/food-waste/`.
 
 ## Assumptions made
 
@@ -118,14 +117,23 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - SMTP TCP connectivity: ports 25, 465, and 587 reachable.
 - SMTP STARTTLS/implicit TLS: verified through the dedicated exact-certificate
   trust context; incorrect hostname verification fails.
-- SMTP authentication: rejected with code `535` on ports 587 and 465.
+- SMTP authentication: accepted on port 587 with STARTTLS after setting the
+  full login `mealhouse@taxoz.org`.
+- SMTP test message: accepted by the server.
+- Password-reset request: delivered by the worker in one attempt; no pending,
+  running, failed, or dead mail job remains.
 - Salling Stores API: authenticated successfully.
 - Salling Anti Food Waste for postal code 9000: `403 Forbidden`; provider kept
   disabled with configuration updated to ZIP 9000.
 - Administrator: existing `frederikjuulolsen@gmail.com` account promoted;
   active, verified, staff, and superuser flags confirmed.
-- Temporary administrator password: generated locally and stored at
+- Administrator login: authenticated successfully and redirected to the
+  dashboard; the account remains active, verified, staff, superuser, and unique.
+- Temporary administrator password: retained at
   `/etc/mealhouse/admin-temporary-password`, mode `0600`, root-owned.
+- Production static files: corrected Nginx alias from the unused source-tree
+  path to configured `STATIC_ROOT=/var/lib/mealhouse/static`; CSS and JS now
+  return `200`.
 - Ruff: passed.
 - Pytest: 49 passed using the pre-created disposable test database.
 - Playwright/axe live accessibility suite: 5 passed.
@@ -140,8 +148,6 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Tests still required
 
-- Repeat SMTP authentication and send the real test/reset messages after the
-  credential is corrected.
 - Repeat Salling Anti Food Waste verification after scope is granted.
 
 ## Deployment state
@@ -167,7 +173,8 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 ## Service changes
 
 - Web and worker restarted successfully after deployment and hardening.
-- Nginx reloaded after validated timeout configuration.
+- Web and worker restarted after the SMTP username correction.
+- Nginx reloaded after validating the static-file alias correction.
 - Scheduler and backup timers remain enabled.
 
 ## Firewall state
@@ -202,7 +209,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Exact next steps
 
-1. Correct the SMTP credential and rerun `manage.py verify_smtp --send`.
-2. Grant Salling Anti Food Waste permission and rerun
+1. Commit, push, and deploy the final static/documentation changes.
+2. Grant Salling Anti Food Waste production permission and rerun
    `manage.py verify_salling --zip 9000`.
-3. Enable and synchronize the Salling provider only after step 2 succeeds.
+3. Enable and synchronize the provider only after step 2 succeeds.

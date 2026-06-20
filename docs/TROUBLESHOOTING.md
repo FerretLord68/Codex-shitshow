@@ -14,8 +14,8 @@ If public links use the wrong host, verify `APP_URL`. If client IPs or HTTPS det
 
 ## Known limitations
 
-- SMTP uses the dedicated certificate trust described in `INTEGRATIONS.md`.
-  Authentication code `535` means the configured username/password was rejected.
+- SMTP uses the dedicated certificate trust described in `INTEGRATIONS.md` and
+  requires the full login `mealhouse@taxoz.org`.
 - The Salling Group provider remains disabled when the token lacks Anti Food
   Waste permission, even if the same token can access the Stores API.
 - Nutrition and prices require curated source data for complete totals.
@@ -28,7 +28,7 @@ If public links use the wrong host, verify `APP_URL`. If client IPs or HTTPS det
 
 ```bash
 sudo -u www-data /srv/mealhouse/.venv/bin/python manage.py verify_smtp
-sudo -u www-data /srv/mealhouse/.venv/bin/python manage.py verify_salling --zip 8000
+sudo -u www-data /srv/mealhouse/.venv/bin/python manage.py verify_salling --zip 9000
 ```
 
 `SSLCertVerificationError` from SMTP means the pinned certificate changed,

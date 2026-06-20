@@ -68,7 +68,7 @@ EMAIL_BACKEND=notifications.backends.smtp.EmailBackend
 SMTP_HOST=mail.taxoz.org
 SMTP_PORT=587
 SMTP_SECURE=false
-SMTP_USERNAME=mealhouse
+SMTP_USERNAME=mealhouse@taxoz.org
 SMTP_PASSWORD=
 SMTP_FROM_ADDRESS=mealhouse@taxoz.org
 SMTP_FROM_NAME=MealHouse
@@ -115,3 +115,6 @@ sudo -u www-data /srv/mealhouse/.venv/bin/python /srv/mealhouse/manage.py verify
 ```
 
 Add `--send --recipient you@example.test` to send a test message.
+
+The mail server requires the full mailbox address as the SMTP login. The short
+name `mealhouse` is rejected even when the password is correct.

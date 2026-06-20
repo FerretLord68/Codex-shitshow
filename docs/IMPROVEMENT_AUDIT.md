@@ -7,7 +7,8 @@ Date: 2026-06-20
 - **Email delivery trust:** SMTP submission uses a self-signed certificate. The
   exact certificate was validated against the owner-provided SPKI and is trusted
   only by MealHouse's dedicated SMTP context. Hostname and expiry checks remain
-  enabled. Remaining action: replace the rejected SMTP credential.
+  enabled. Authentication, a test message, and a password-reset message are
+  verified using the required full mailbox login.
 - **Host ingress policy:** the host previously had no active firewall. Persistent UFW now denies unsolicited input/routing and permits SSH, the known proxy-to-MealHouse HTTP path, required LXD DNS/DHCP, and container egress.
 - **Administrator ownership:** the requested existing user was transactionally
   promoted without duplication. A strong random temporary password is stored
@@ -75,8 +76,6 @@ Date: 2026-06-20
 
 ## Owner decisions required
 
-- Correct SMTP credential after authenticated submission rejected the configured
-  value on ports 587 and 465.
 - Anti Food Waste permission for the Salling token; Stores access succeeds.
 - Data-retention policy and legal contact wording.
 - Whether SSH password authentication may be disabled after key-only access is independently tested.
