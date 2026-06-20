@@ -48,11 +48,12 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Deployed commit `91ac425`, applied both new migrations, seeded the disabled Salling provider, collected 129 static files, and verified public HTTP/HTTPS plus readiness.
 - Hardened web/worker systemd services from exposure scores 6.2/6.3 (medium) to 2.8 (OK).
 - Enabled persistent host UFW with SSH, proxy HTTP, LXD DNS/DHCP, and LXD outbound rules.
+- Applied all available standard Ubuntu updates on host and container, including the phased fwupd upgrade; no packages remain pending.
+- Validated the fresh backup checksums plus PostgreSQL and media archive readability.
 
 ## Current work in progress
 
-- Reviewing the first implementation checkpoint before commit.
-- Applying operating-system updates, completing final documentation/checks, and preparing reboot verification.
+- Completing final checks, deployment synchronization, push, and reboot verification.
 
 ## Remaining work
 
@@ -60,13 +61,8 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Confirm final sender address.
 - Obtain Salling Group API token securely and verify production.
 - Create/upgrade the first administrator interactively.
-- Complete security, performance, UX, accessibility, dependency, and secret-history audits.
-- Add migrations/indexes where required, after a fresh backup.
-- Synchronize production checkout safely.
-- Validate/harden Nginx and systemd.
-- Configure and verify persistent host firewall without breaking SSH/LXD port 80.
-- Run full tests, build/checks, deployment verification, commit, push, and remote verification.
-- Perform controlled reboot verification if safe and useful.
+- Synchronize the final committed production checkout.
+- Run final checks, push, remote verification, and controlled reboot verification.
 
 ## Owner questions
 
@@ -91,22 +87,24 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - HTTP request to `192.168.1.112` with canonical host: `200 OK`.
 - SMTP TCP connectivity: ports 25, 465, and 587 reachable.
 - SMTP STARTTLS/implicit TLS: negotiation succeeds, certificate verification fails because the presented certificate is self-signed.
+- Ruff: passed.
+- Pytest: 42 passed.
+- Playwright/axe live accessibility suite: 5 passed.
+- Python dependency audit: no known vulnerabilities.
+- Node dependency audit: no vulnerabilities.
+- Backup checksum/archive validation: passed.
 
 ## Tests still required
 
-- Ruff, pytest unit/integration suite, Playwright/axe accessibility suite.
-- Django checks, migration consistency, production build/static collection.
-- Python and Node dependency audits.
 - SMTP authentication and optional delivery.
 - Salling API live authentication and production integration.
-- Post-deployment health/readiness and logs.
 - Firewall persistence/connectivity and post-reboot recovery.
 
 ## Deployment state
 
 - Production is live and returns HTTP 200 through the host LAN address.
 - Container services Nginx, PostgreSQL, `mealhouse-web`, `mealhouse-worker`, scheduler timer, and backup timer are active.
-- Production source under `/srv/mealhouse` contains deployed files not represented in its local Git index; deployment synchronization must preserve data and be corrected carefully.
+- Production source under `/srv/mealhouse` is a clean Git checkout at `91ac425`; final documentation/deployment commits still need synchronization.
 
 ## System files changed
 
@@ -136,18 +134,19 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 ## Git commits created
 
 - `91ac425 feat: add secure mail and Salling integrations`
+- `0197902 chore: harden production services and firewall docs`
 
 ## Last known good state
 
-- Commit `06c01b5` on `codex/production-mealhouse`.
+- Commit `0197902` on `codex/production-mealhouse`; production application code is at `91ac425` with the `0197902` service/Nginx configuration applied separately.
 - Production HTTP responds successfully.
 - Application, worker, database, Nginx, scheduler, and backup timer active.
-- Backup `20260620T022409Z` exists under `/var/lib/mealhouse/backups` in the container.
+- Backup `20260620T175215Z` and snapshot `pre-91ac425-20260620` are verified.
 
 ## Exact next steps
 
-1. Commit systemd, Nginx, firewall documentation, and updated progress.
-2. Apply available host/container operating-system updates.
-3. Run full final checks and push the branch.
+1. Finish and commit reliability/audit documentation changes.
+2. Run full final checks and push the branch.
+3. Synchronize the exact final commit into `/srv/mealhouse`.
 4. Reboot and verify UFW, LXD, Nginx, PostgreSQL, web, worker, timers, HTTP, DNS, and outbound connectivity.
 5. Obtain protected owner credentials, verify SMTP/Salling, and bootstrap the administrator.

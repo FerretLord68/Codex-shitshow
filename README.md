@@ -19,6 +19,7 @@ The implementation is a modular Django monolith backed by PostgreSQL. A backgrou
 - [Offer providers and recipe imports](docs/INTEGRATIONS.md)
 - [Database and API overview](docs/REFERENCE.md)
 - [Troubleshooting and known limitations](docs/TROUBLESHOOTING.md)
+- [Improvement audit and prioritized backlog](docs/IMPROVEMENT_AUDIT.md)
 
 ## Quick local test
 

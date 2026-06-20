@@ -5,6 +5,7 @@ from .models import Recipe, RecipeIngredient
 
 class RecipeForm(forms.ModelForm):
     instructions_text = forms.CharField(widget=forms.Textarea, required=False)
+    source_url = forms.URLField(required=False, assume_scheme="https")
 
     class Meta:
         model = Recipe

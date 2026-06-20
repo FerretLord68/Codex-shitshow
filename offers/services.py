@@ -81,83 +81,107 @@ def import_manual_records(provider, records):
 
 
 @transaction.atomic
+def _persist_provider_records(provider, records):
+    imported = 0
+    for record in records:
+        store_data = record.get("store", {})
+        external_store_id = store_data.get("external_id")
+        if external_store_id:
+            store = Store.objects.filter(
+                provider_identifiers__salling_group=external_store_id
+            ).first()
+            if not store:
+                store = Store(provider_identifiers={"salling_group": external_store_id})
+            store.name = store_data["name"]
+            store.chain = store_data.get("chain", "")
+            store.address = store_data.get("street", "")
+            store.postal_code = store_data.get("postal_code", "")
+            store.city = store_data.get("city", "")
+            store.latitude = store_data.get("latitude")
+            store.longitude = store_data.get("longitude")
+            store.opening_hours = store_data.get("opening_hours", [])
+            store.currency = record["currency"]
+            store.save()
+        else:
+            store, _ = Store.objects.get_or_create(
+                name=record.get("store_name", "Mock store"),
+                defaults={"currency": record["currency"]},
+            )
+        product, _ = Product.objects.get_or_create(
+            name=record["product_name"],
+            brand=record.get("brand", ""),
+            defaults={
+                "category": record.get("category", ""),
+                "barcode": record.get("external_product_id", ""),
+            },
+        )
+        offer, _ = GroceryOffer.objects.update_or_create(
+            provider=provider,
+            source_identifier=record.get("source_identifier", record.get("external_offer_id")),
+            starts_at=record.get("starts_at", record.get("valid_from")),
+            defaults={
+                "store": store,
+                "product": product,
+                "product_name": product.name,
+                "brand": product.brand,
+                "category": product.category,
+                "description": record.get("description", ""),
+                "regular_price": record.get("regular_price", record.get("original_price")),
+                "offer_price": record["offer_price"],
+                "discount_amount": record.get("discount_amount"),
+                "discount_percentage": record.get("discount_percentage"),
+                "quantity": record.get("quantity"),
+                "unit": record.get("unit", ""),
+                "currency": record["currency"],
+                "ends_at": record.get("ends_at", record.get("valid_until")),
+                "image_url": record.get("image_url", ""),
+                "product_identifier": record.get("external_product_id", ""),
+                "original_source_text": record.get(
+                    "original_source_text", record["product_name"]
+                ),
+                "retrieved_at": timezone.now(),
+                "raw_source_timestamp": record.get("raw_source_timestamp"),
+            },
+        )
+        PriceRecord.objects.get_or_create(
+            product=product,
+            store=store,
+            observed_at=offer.retrieved_at,
+            defaults={
+                "price": offer.offer_price,
+                "currency": offer.currency,
+                "source": "offer",
+                "offer": offer,
+            },
+        )
+        match_product_to_ingredients(product)
+        imported += 1
+    GroceryOffer.objects.filter(provider=provider, ends_at__lt=timezone.now()).update(
+        is_active=False
+    )
+    return imported
+
+
 def synchronize_provider(provider_id):
     provider = OfferProvider.objects.get(pk=provider_id, enabled=True)
     run = OfferSyncRun.objects.create(provider=provider, status="running")
-    imported = 0
     try:
         adapter_class = PROVIDER_TYPES.get(provider.kind)
         if not adapter_class:
             raise ValueError("Provider requires an approved adapter.")
-        adapter = adapter_class(provider) if provider.kind == OfferProvider.Kind.SALLING_GROUP else adapter_class()
-        for record in adapter.fetch():
-            store_data = record.get("store", {})
-            external_store_id = store_data.get("external_id")
-            if external_store_id:
-                store = Store.objects.filter(
-                    provider_identifiers__salling_group=external_store_id
-                ).first()
-                if not store:
-                    store = Store(provider_identifiers={"salling_group": external_store_id})
-                store.name = store_data["name"]
-                store.chain = store_data.get("chain", "")
-                store.address = store_data.get("street", "")
-                store.postal_code = store_data.get("postal_code", "")
-                store.city = store_data.get("city", "")
-                store.latitude = store_data.get("latitude")
-                store.longitude = store_data.get("longitude")
-                store.opening_hours = store_data.get("opening_hours", [])
-                store.currency = record["currency"]
-                store.save()
-            else:
-                store, _ = Store.objects.get_or_create(
-                    name=record.get("store_name", "Mock store"),
-                    defaults={"currency": record["currency"]},
-                )
-            product, _ = Product.objects.get_or_create(
-                name=record["product_name"],
-                brand=record.get("brand", ""),
-                defaults={
-                    "category": record.get("category", ""),
-                    "barcode": record.get("external_product_id", ""),
-                },
-            )
-            offer, _ = GroceryOffer.objects.update_or_create(
-                provider=provider,
-                source_identifier=record.get("source_identifier", record.get("external_offer_id")),
-                starts_at=record.get("starts_at", record.get("valid_from")),
-                defaults={
-                    "store": store, "product": product, "product_name": product.name,
-                    "brand": product.brand, "category": product.category,
-                    "description": record.get("description", ""),
-                    "regular_price": record.get("regular_price", record.get("original_price")),
-                    "offer_price": record["offer_price"],
-                    "discount_amount": record.get("discount_amount"),
-                    "discount_percentage": record.get("discount_percentage"),
-                    "quantity": record.get("quantity"),
-                    "unit": record.get("unit", ""),
-                    "currency": record["currency"],
-                    "ends_at": record.get("ends_at", record.get("valid_until")),
-                    "image_url": record.get("image_url", ""),
-                    "product_identifier": record.get("external_product_id", ""),
-                    "original_source_text": record.get("original_source_text", record["product_name"]),
-                    "retrieved_at": timezone.now(),
-                    "raw_source_timestamp": record.get("raw_source_timestamp"),
-                },
-            )
-            PriceRecord.objects.get_or_create(
-                product=product, store=store, observed_at=offer.retrieved_at,
-                defaults={"price": offer.offer_price, "currency": offer.currency, "source": "offer", "offer": offer},
-            )
-            match_product_to_ingredients(product)
-            imported += 1
-        GroceryOffer.objects.filter(provider=provider, ends_at__lt=timezone.now()).update(is_active=False)
+        adapter = (
+            adapter_class(provider)
+            if provider.kind == OfferProvider.Kind.SALLING_GROUP
+            else adapter_class()
+        )
+        records = list(adapter.fetch())
+        imported = _persist_provider_records(provider, records)
         run.status = "succeeded"
         run.imported_count = imported
     except Exception as error:
         run.status = "failed"
         run.error_type = type(error).__name__
-        run.error_message = str(error)[:500]
+        run.error_message = "Provider synchronization failed; see structured logs."
         raise
     finally:
         run.finished_at = timezone.now()
