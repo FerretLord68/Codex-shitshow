@@ -53,10 +53,11 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Pushed commits `91ac425`, `0197902`, and `8b809d4` to `origin/codex/production-mealhouse`.
 - Synchronized the clean production checkout to exact commit `8b809d4821f67a202663bea0270e91af6539fbce`.
 - First reboot audit found and corrected two persistence defects: DHCP broadcast was not covered by the original UFW destination-specific rule, and `br_netfilter` was not loaded before LXD. The container recovered with its reserved IP, public HTTP/HTTPS returned 200, readiness passed, and DNS/HTTPS/SMTP egress passed.
+- Second controlled reboot verified the fixes persist from boot: zero failed units on host/container; UFW active; `br_netfilter` and bridge sysctls loaded; container received `10.241.159.210`; Nginx, PostgreSQL, web, worker, scheduler, and backup timer active/enabled; readiness healthy; host/public HTTP 200; Salling DNS/HTTPS reachable; SMTP 587 reachable.
 
 ## Current work in progress
 
-- Committing the reboot fixes and preparing a second reboot to verify persistence from a clean boot.
+- Recording final verification and waiting for owner-only integration credentials/admin password.
 
 ## Remaining work
 
@@ -64,7 +65,6 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Confirm final sender address.
 - Obtain Salling Group API token securely and verify production.
 - Create/upgrade the first administrator interactively.
-- Commit/push the reboot fixes and perform a second controlled reboot verification.
 
 ## Owner questions
 
@@ -100,13 +100,12 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 - SMTP authentication and optional delivery.
 - Salling API live authentication and production integration.
-- Firewall persistence/connectivity and post-reboot recovery.
 
 ## Deployment state
 
 - Production is live and returns HTTP 200 through the host LAN address.
 - Container services Nginx, PostgreSQL, `mealhouse-web`, `mealhouse-worker`, scheduler timer, and backup timer are active.
-- Production source under `/srv/mealhouse` is a clean Git checkout at `8b809d4`.
+- Production source under `/srv/mealhouse` is a clean Git checkout at `6ffefd1`.
 
 ## System files changed
 
@@ -139,17 +138,18 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - `91ac425 feat: add secure mail and Salling integrations`
 - `0197902 chore: harden production services and firewall docs`
 - `8b809d4 fix: improve provider reliability and record audit`
+- `89776f9 docs: record pre-reboot production state`
+- `6ffefd1 fix: persist LXD networking across reboot`
 
 ## Last known good state
 
-- Commit `8b809d4` on `codex/production-mealhouse` is deployed and ready.
+- Commit `6ffefd1` on `codex/production-mealhouse` is deployed and verified across reboot.
 - Production HTTP responds successfully.
 - Application, worker, database, Nginx, scheduler, and backup timer active.
 - Backup `20260620T175215Z` and snapshot `pre-91ac425-20260620` are verified.
 
 ## Exact next steps
 
-1. Commit and push the DHCP/bridge-netfilter reboot fixes.
-2. Reboot again and verify UFW, LXD address assignment, Nginx, PostgreSQL, web, worker, timers, HTTP, DNS, and outbound connectivity.
-3. Record successful post-reboot results and push the final documentation commit.
-4. Obtain protected owner credentials, verify SMTP/Salling, and bootstrap the administrator.
+1. Commit and push the successful second-reboot verification.
+2. Obtain protected owner credentials, verify SMTP/Salling, and bootstrap the administrator.
+3. Enable the Salling provider only after live authentication and target-area confirmation.
