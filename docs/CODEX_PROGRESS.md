@@ -50,10 +50,12 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Enabled persistent host UFW with SSH, proxy HTTP, LXD DNS/DHCP, and LXD outbound rules.
 - Applied all available standard Ubuntu updates on host and container, including the phased fwupd upgrade; no packages remain pending.
 - Validated the fresh backup checksums plus PostgreSQL and media archive readability.
+- Pushed commits `91ac425`, `0197902`, and `8b809d4` to `origin/codex/production-mealhouse`.
+- Synchronized the clean production checkout to exact commit `8b809d4821f67a202663bea0270e91af6539fbce`.
 
 ## Current work in progress
 
-- Completing final checks, deployment synchronization, push, and reboot verification.
+- Preparing and performing controlled reboot verification.
 
 ## Remaining work
 
@@ -61,8 +63,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Confirm final sender address.
 - Obtain Salling Group API token securely and verify production.
 - Create/upgrade the first administrator interactively.
-- Synchronize the final committed production checkout.
-- Run final checks, push, remote verification, and controlled reboot verification.
+- Commit/push this pre-reboot checkpoint and perform controlled reboot verification.
 
 ## Owner questions
 
@@ -104,7 +105,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 - Production is live and returns HTTP 200 through the host LAN address.
 - Container services Nginx, PostgreSQL, `mealhouse-web`, `mealhouse-worker`, scheduler timer, and backup timer are active.
-- Production source under `/srv/mealhouse` is a clean Git checkout at `91ac425`; final documentation/deployment commits still need synchronization.
+- Production source under `/srv/mealhouse` is a clean Git checkout at `8b809d4`.
 
 ## System files changed
 
@@ -135,18 +136,18 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 - `91ac425 feat: add secure mail and Salling integrations`
 - `0197902 chore: harden production services and firewall docs`
+- `8b809d4 fix: improve provider reliability and record audit`
 
 ## Last known good state
 
-- Commit `0197902` on `codex/production-mealhouse`; production application code is at `91ac425` with the `0197902` service/Nginx configuration applied separately.
+- Commit `8b809d4` on `codex/production-mealhouse` is deployed and ready.
 - Production HTTP responds successfully.
 - Application, worker, database, Nginx, scheduler, and backup timer active.
 - Backup `20260620T175215Z` and snapshot `pre-91ac425-20260620` are verified.
 
 ## Exact next steps
 
-1. Finish and commit reliability/audit documentation changes.
-2. Run full final checks and push the branch.
-3. Synchronize the exact final commit into `/srv/mealhouse`.
-4. Reboot and verify UFW, LXD, Nginx, PostgreSQL, web, worker, timers, HTTP, DNS, and outbound connectivity.
-5. Obtain protected owner credentials, verify SMTP/Salling, and bootstrap the administrator.
+1. Commit and push this pre-reboot checkpoint.
+2. Reboot and verify UFW, LXD, Nginx, PostgreSQL, web, worker, timers, HTTP, DNS, and outbound connectivity.
+3. Record post-reboot results and push the final documentation commit.
+4. Obtain protected owner credentials, verify SMTP/Salling, and bootstrap the administrator.
