@@ -81,12 +81,13 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Current work in progress
 
-- Final merged-main deployment verification and branch cleanup.
+- Completed. Final `main` is deployed and verified; branch cleanup remains the
+  final Git housekeeping operation.
 
 ## Remaining work
 
-- Deploy final `main`, complete post-deployment checks, and clean obsolete merged
-  branches.
+- Owner should remove `/etc/mealhouse/admin-temporary-password` after using the
+  delivered password-reset message to establish a private password.
 
 ## Owner questions
 
@@ -150,14 +151,15 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Tests still required
 
-- Final post-deployment verification against merged `main`.
+- None for the deployed code. Routine recurring backup and integration
+  monitoring continue operationally.
 
 ## Deployment state
 
 - Production is live and returns HTTP 200 through the host LAN address.
 - Container services Nginx, PostgreSQL, `mealhouse-web`, `mealhouse-worker`, scheduler timer, and backup timer are active.
-- Production source under `/srv/mealhouse` tracks the final verified `main`
-  commit as a detached clean checkout.
+- Production source under `/srv/mealhouse` tracks final `main` as a detached
+  clean checkout.
 
 ## System files changed
 
@@ -213,6 +215,8 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Exact next steps
 
-1. Push and deploy final `main`, then verify Git and production state.
-2. Clean only branches whose commits are fully reachable from final `main`.
+1. Owner completes password reset, confirms access, then securely deletes the
+   root-only temporary password file.
+2. Continue normal monitoring, backups, dependency updates, and certificate
+   rotation before February 1, 2027.
 3. Enable and synchronize the provider only after step 2 succeeds.
