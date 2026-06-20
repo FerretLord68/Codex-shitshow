@@ -53,8 +53,17 @@ The host uses persistent UFW rules with default deny for incoming and routed tra
 - TCP 22 from IPv4/IPv6 for SSH.
 - TCP 80 from the external proxy `192.168.0.240`.
 - Routed TCP 80 from that proxy to the LXD container `10.241.159.210`.
-- LXD bridge DNS (TCP/UDP 53) and DHCP (UDP 67).
+- LXD bridge DNS (TCP/UDP 53), DHCP broadcast input (UDP 67), and DHCP bridge forwarding (UDP 68 to 67).
 - Routed outbound traffic from `10.241.159.0/24` through `ens18`; established return traffic is statefully allowed.
+
+LXD host-port proxying also requires bridge netfilter to be loaded before LXD starts. The repository files `deploy/lxd-bridge-netfilter.conf` and `deploy/99-mealhouse-lxd-bridge.conf` are installed as:
+
+```text
+/etc/modules-load.d/mealhouse-lxd.conf
+/etc/sysctl.d/99-mealhouse-lxd-bridge.conf
+```
+
+Without these, LXD reports that IPv4 bridge netfilter is unavailable and host port 80 returns no response after reboot.
 
 Verify:
 

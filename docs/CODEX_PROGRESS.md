@@ -52,10 +52,11 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Validated the fresh backup checksums plus PostgreSQL and media archive readability.
 - Pushed commits `91ac425`, `0197902`, and `8b809d4` to `origin/codex/production-mealhouse`.
 - Synchronized the clean production checkout to exact commit `8b809d4821f67a202663bea0270e91af6539fbce`.
+- First reboot audit found and corrected two persistence defects: DHCP broadcast was not covered by the original UFW destination-specific rule, and `br_netfilter` was not loaded before LXD. The container recovered with its reserved IP, public HTTP/HTTPS returned 200, readiness passed, and DNS/HTTPS/SMTP egress passed.
 
 ## Current work in progress
 
-- Preparing and performing controlled reboot verification.
+- Committing the reboot fixes and preparing a second reboot to verify persistence from a clean boot.
 
 ## Remaining work
 
@@ -63,7 +64,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Confirm final sender address.
 - Obtain Salling Group API token securely and verify production.
 - Create/upgrade the first administrator interactively.
-- Commit/push this pre-reboot checkpoint and perform controlled reboot verification.
+- Commit/push the reboot fixes and perform a second controlled reboot verification.
 
 ## Owner questions
 
@@ -110,6 +111,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 ## System files changed
 
 - Host UFW configuration under `/etc/ufw`; backup at `/var/backups/mealhouse-firewall/20260620T1757Z`.
+- Host module/sysctl configuration: `/etc/modules-load.d/mealhouse-lxd.conf` and `/etc/sysctl.d/99-mealhouse-lxd-bridge.conf`.
 - Container systemd units: `/etc/systemd/system/mealhouse-{web,worker,scheduler}.service`.
 - Container Nginx site: `/etc/nginx/sites-available/mealhouse`.
 - Container configuration backup: `/var/lib/mealhouse/config-backups/20260620T1802Z`.
@@ -147,7 +149,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Exact next steps
 
-1. Commit and push this pre-reboot checkpoint.
-2. Reboot and verify UFW, LXD, Nginx, PostgreSQL, web, worker, timers, HTTP, DNS, and outbound connectivity.
-3. Record post-reboot results and push the final documentation commit.
+1. Commit and push the DHCP/bridge-netfilter reboot fixes.
+2. Reboot again and verify UFW, LXD address assignment, Nginx, PostgreSQL, web, worker, timers, HTTP, DNS, and outbound connectivity.
+3. Record successful post-reboot results and push the final documentation commit.
 4. Obtain protected owner credentials, verify SMTP/Salling, and bootstrap the administrator.
