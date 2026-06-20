@@ -59,10 +59,12 @@ It does not bypass login, paywalls, CAPTCHAs, or anti-bot systems.
 
 ## SMTP
 
-Production uses authenticated SMTP submission to `mail.taxoz.org`. Preferred configuration is port 587 with STARTTLS; port 465 with implicit TLS is supported by setting `SMTP_SECURE=true`. Certificate validation is mandatory.
+Production uses authenticated SMTP submission to `mail.taxoz.org` on port 587
+with STARTTLS. Port 465 with implicit TLS is supported by setting
+`SMTP_SECURE=true`. Certificate validation is mandatory.
 
 ```env
-EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_BACKEND=notifications.backends.smtp.EmailBackend
 SMTP_HOST=mail.taxoz.org
 SMTP_PORT=587
 SMTP_SECURE=false
@@ -72,9 +74,39 @@ SMTP_FROM_ADDRESS=mealhouse@taxoz.org
 SMTP_FROM_NAME=MealHouse
 SMTP_CONNECTION_TIMEOUT_MS=10000
 SMTP_SEND_TIMEOUT_MS=15000
+SMTP_CA_FILE=/etc/mealhouse/certs/mail.taxoz.org.pem
+SMTP_CERT_FINGERPRINT=
 ```
 
 Email is queued and delivered by the worker in plain-text and HTML forms. Temporary failures are retried with bounded exponential backoff; permanent SMTP rejections are marked dead. Logs include template/job identity but never recipient addresses, message bodies, credentials, or tokens.
+
+### Host-specific certificate trust
+
+As verified on June 20, 2026, ports 25, 587, and 465 present the same
+self-signed certificate:
+
+- Subject and issuer: `CN=mail.taxoz.org, OU=mailcow, O=mailcow, L=Willich, ST=NRW, C=DE`
+- Serial: `1CA60BEF3469FEDE7FC5C4F58094BFC151ED2E3B`
+- Validity: February 1, 2026 through February 1, 2027
+- Certificate SHA-256: `cbc123713718f2414a489a51d6f4c9197e81305ad92d38824150aff724c557c3`
+- SPKI SHA-256: `3f6efd1f1c5ed449e699f2cd76bcb85d73f088063d2492eeb1b15d1a98d83777`
+
+The SPKI matches the value supplied by the mail owner. DNSSEC validation for
+`taxoz.org` succeeds, but currently proves an authenticated `NXDOMAIN` for
+`_25._tcp.mail.taxoz.org`; the supplied TLSA record is not currently published.
+It is therefore treated as out-of-band owner evidence rather than live DANE
+evidence.
+
+The exact certificate is installed at
+`/etc/mealhouse/certs/mail.taxoz.org.pem`. The custom backend loads it into a
+dedicated SSL context used only for MealHouse SMTP. Certificate signature,
+validity, and hostname checks remain enabled. The backend refuses to apply this
+trust file to another hostname; global HTTPS and system trust are unchanged.
+
+Before February 1, 2027, obtain the replacement certificate or SPKI through a
+trusted owner channel, compare it with every enabled SMTP port, replace the PEM
+atomically, run `manage.py verify_smtp`, and restart the web and worker
+services. A changed or expired certificate fails closed.
 
 Verify without sending:
 
@@ -82,4 +114,4 @@ Verify without sending:
 sudo -u www-data /srv/mealhouse/.venv/bin/python /srv/mealhouse/manage.py verify_smtp
 ```
 
-Add `--send --recipient you@example.test` to send a test message. As of June 20, 2026, ports 587 and 465 were reachable but the server presented a self-signed certificate. Correct the mail-server certificate before enabling SMTP; do not disable verification.
+Add `--send --recipient you@example.test` to send a test message.

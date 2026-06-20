@@ -4,6 +4,7 @@ import socket
 import ssl
 
 from django.conf import settings
+from django.core.mail import get_connection
 from django.core.management.base import BaseCommand, CommandError
 
 from notifications.mail import deliver
@@ -22,7 +23,8 @@ class Command(BaseCommand):
         password = settings.SMTP_PASSWORD or getpass.getpass("SMTP password: ")
         addresses = sorted({item[4][0] for item in socket.getaddrinfo(settings.SMTP_HOST, settings.SMTP_PORT)})
         self.stdout.write(f"DNS: {settings.SMTP_HOST} -> {', '.join(addresses)}")
-        context = ssl.create_default_context()
+        connection = get_connection(password=password)
+        context = connection.ssl_context
         try:
             if settings.SMTP_SECURE:
                 client = smtplib.SMTP_SSL(
@@ -53,9 +55,6 @@ class Command(BaseCommand):
         if options["send"] and not recipient:
             recipient = input("Test recipient (leave blank to skip): ").strip()
         if options["send"] and recipient:
-            connection = __import__("django.core.mail", fromlist=["get_connection"]).get_connection(
-                password=password
-            )
             deliver({
                 "to": recipient,
                 "subject": "MealHouse SMTP verification",

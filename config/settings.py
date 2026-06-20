@@ -178,6 +178,8 @@ SMTP_FROM_ADDRESS = env("SMTP_FROM_ADDRESS", "")
 SMTP_FROM_NAME = env("SMTP_FROM_NAME", "MealHouse")
 SMTP_CONNECTION_TIMEOUT_MS = env_int("SMTP_CONNECTION_TIMEOUT_MS", 10000, minimum=1000)
 SMTP_SEND_TIMEOUT_MS = env_int("SMTP_SEND_TIMEOUT_MS", 15000, minimum=1000)
+SMTP_CA_FILE = env("SMTP_CA_FILE", "")
+SMTP_CERT_FINGERPRINT = env("SMTP_CERT_FINGERPRINT", "")
 EMAIL_HOST = SMTP_HOST
 EMAIL_PORT = SMTP_PORT
 EMAIL_HOST_USER = SMTP_USERNAME
@@ -190,7 +192,11 @@ DEFAULT_FROM_EMAIL = env(
     f"{SMTP_FROM_NAME} <{SMTP_FROM_ADDRESS}>" if SMTP_FROM_ADDRESS else "MealHouse <no-reply@localhost>",
 )
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-if ENVIRONMENT == "production" and EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend":
+SMTP_BACKENDS = {
+    "django.core.mail.backends.smtp.EmailBackend",
+    "notifications.backends.smtp.EmailBackend",
+}
+if ENVIRONMENT == "production" and EMAIL_BACKEND in SMTP_BACKENDS:
     for required_name, required_value in (
         ("SMTP_HOST", SMTP_HOST),
         ("SMTP_USERNAME", SMTP_USERNAME),
@@ -201,6 +207,18 @@ if ENVIRONMENT == "production" and EMAIL_BACKEND == "django.core.mail.backends.s
             raise ImproperlyConfigured(f"Required environment variable {required_name} is missing")
     if not SMTP_FROM_ADDRESS.lower().endswith("@taxoz.org"):
         raise ImproperlyConfigured("SMTP_FROM_ADDRESS must use the authorized taxoz.org domain")
+    if SMTP_CERT_FINGERPRINT:
+        raise ImproperlyConfigured(
+            "SMTP_CERT_FINGERPRINT is not supported; use the host-specific SMTP_CA_FILE"
+        )
+    if SMTP_CA_FILE:
+        ca_path = Path(SMTP_CA_FILE)
+        if not ca_path.is_absolute() or not ca_path.is_file():
+            raise ImproperlyConfigured("SMTP_CA_FILE must be an existing absolute file")
+        if SMTP_HOST != "mail.taxoz.org":
+            raise ImproperlyConfigured(
+                "The configured SMTP trust file is restricted to mail.taxoz.org"
+            )
 
 LOGGING = {
     "version": 1,

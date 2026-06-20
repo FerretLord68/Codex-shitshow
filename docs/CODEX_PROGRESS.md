@@ -17,6 +17,29 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Completed work
 
+- Continuation from commit `6538b07`:
+  - Confirmed the completed owner environment was on the host while the
+    container still had the prior environment.
+  - Restricted `/etc/mealhouse/mealhouse.env` from `0644` to `0600` and saved a
+    root-only backup before normalization.
+  - Corrected sender values entered as Markdown links and added the exact
+    timeout/TLS variable names read by Django.
+  - Inspected SMTP ports 25/587/465. All are reachable and present the same
+    self-signed certificate and RSA-4096 key. Ports 587 and 465 advertise
+    authenticated submission after TLS; port 25 does not advertise AUTH.
+  - Verified certificate SHA-256
+    `cbc123713718f2414a489a51d6f4c9197e81305ad92d38824150aff724c557c3`
+    and SPKI SHA-256
+    `3f6efd1f1c5ed449e699f2cd76bcb85d73f088063d2492eeb1b15d1a98d83777`.
+  - Verified the SPKI matches the value supplied by the SMTP owner.
+  - Verified DNSSEC for `taxoz.org`; validating resolvers return signed,
+    authenticated `NXDOMAIN` for `_25._tcp.mail.taxoz.org`, so the supplied
+    TLSA is not currently published.
+  - Installed the validated leaf certificate on the host at
+    `/etc/mealhouse/certs/mail.taxoz.org.pem`.
+  - Added a connection-local SMTP backend that trusts the exact certificate
+    only for `mail.taxoz.org`; hostname and expiry validation remain enabled.
+
 - Confirmed repository path, clean worktree, branch, remote, and history.
 - Confirmed no repository-scoped `AGENTS.md` exists.
 - Fetched and pruned the Git remote.
@@ -58,26 +81,29 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Current work in progress
 
-- Recording final verification and waiting for owner-only integration credentials/admin password.
+- Deploying the SMTP trust backend and completed environment, then verifying
+  SMTP delivery, Salling, and administrator creation.
 
 ## Remaining work
 
-- Obtain SMTP password securely and configure production.
-- Confirm final sender address.
-- Obtain Salling Group API token securely and verify production.
-- Create/upgrade the first administrator interactively.
+- Deploy the protected environment and SMTP certificate to the container.
+- Verify SMTP authentication, test delivery, and password-reset delivery.
+- Verify Salling for postal code 9000 and provider synchronization.
+- Create or promote the first administrator and verify role preservation.
+- Run the complete final validation matrix.
+- Push the working branch, merge to `main`, verify, and push `main`.
 
 ## Owner questions
 
-- What authorized `taxoz.org` sender address should MealHouse use? Reversible default recommendation: `mealhouse@taxoz.org`.
-- SMTP password is absent from protected runtime configuration and must be entered securely on the server; the previously shared value requires rotation.
-- Salling Group API token is absent from protected runtime configuration and must be entered securely on the server.
+- None currently. The sender, SMTP credentials, Salling token and target postal
+  code are configured, and administrator creation is authorized.
 
 ## Assumptions made
 
 - Canonical production URL remains `https://codex-shitshow.fejlgoblin.ovh`.
 - External proxy source remains `192.168.0.240` unless live verification shows otherwise.
-- SMTP must retain strict certificate verification in production; the mail server certificate should be corrected rather than disabling verification.
+- SMTP uses a dedicated exact-certificate trust context restricted to
+  `mail.taxoz.org`; global TLS validation remains unchanged.
 - The current production user and data must be preserved.
 
 ## Tests already run
@@ -151,6 +177,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Exact next steps
 
-1. Commit and push the successful second-reboot verification.
-2. Obtain protected owner credentials, verify SMTP/Salling, and bootstrap the administrator.
-3. Enable the Salling provider only after live authentication and target-area confirmation.
+1. Commit and deploy the SMTP trust backend.
+2. Synchronize the protected environment and certificate to the container.
+3. Verify SMTP, Salling, database, migrations, and administrator workflows.
+4. Run final checks, push the branch, merge to `main`, and verify remote `main`.

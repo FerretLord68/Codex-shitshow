@@ -1,3 +1,4 @@
+import ssl
 import threading
 import time
 from datetime import UTC, datetime
@@ -12,6 +13,7 @@ from django.core.management import call_command
 from django.urls import reverse
 
 from accounts.models import User
+from notifications.backends.smtp import EmailBackend
 from notifications.mail import PermanentMailDeliveryError, deliver
 from offers.salling import (
     SallingAuthenticationError,
@@ -84,6 +86,32 @@ def test_permanent_smtp_error_is_sanitized(settings):
             connection=RejectingConnection(),
         )
     assert "private upstream detail" not in str(caught.value)
+
+
+def test_smtp_backend_uses_connection_local_ca_file(settings, tmp_path):
+    ca_file = tmp_path / "mail.pem"
+    ca_file.write_text("certificate fixture")
+    settings.SMTP_CA_FILE = str(ca_file)
+    with patch("notifications.backends.smtp.ssl.create_default_context") as create_context:
+        context = EmailBackend(host="mail.taxoz.org").ssl_context
+    assert context is create_context.return_value
+    create_context.assert_called_once_with(cafile=str(ca_file))
+
+
+def test_smtp_backend_rejects_ca_file_for_other_host(settings, tmp_path):
+    ca_file = tmp_path / "mail.pem"
+    ca_file.write_text("certificate fixture")
+    settings.SMTP_CA_FILE = str(ca_file)
+    with pytest.raises(ssl.SSLCertVerificationError):
+        _ = EmailBackend(host="smtp.example.test").ssl_context
+
+
+def test_smtp_backend_without_ca_uses_default_global_trust(settings):
+    settings.SMTP_CA_FILE = ""
+    with patch("notifications.backends.smtp.ssl.create_default_context") as create_context:
+        context = EmailBackend(host="mail.taxoz.org").ssl_context
+    assert context is create_context.return_value
+    create_context.assert_called_once_with()
 
 
 def test_salling_food_waste_success_and_normalization(settings):
