@@ -126,7 +126,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Temporary administrator password: generated locally and stored at
   `/etc/mealhouse/admin-temporary-password`, mode `0600`, root-owned.
 - Ruff: passed.
-- Pytest: 48 passed using the pre-created disposable test database.
+- Pytest: 49 passed using the pre-created disposable test database.
 - Playwright/axe live accessibility suite: 5 passed.
 - Python dependency audit: no known vulnerabilities.
 - Node dependency audit: no vulnerabilities.
@@ -148,7 +148,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Production is live and returns HTTP 200 through the host LAN address.
 - Container services Nginx, PostgreSQL, `mealhouse-web`, `mealhouse-worker`, scheduler timer, and backup timer are active.
 - Production source under `/srv/mealhouse` is a detached clean checkout at
-  `10501f3`; the final documentation/test commit remains to deploy.
+  `66c2150`.
 
 ## System files changed
 
@@ -190,6 +190,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - `6ffefd1 fix: persist LXD networking across reboot`
 - `6845283 fix: add host-scoped SMTP certificate trust`
 - `10501f3 fix: secure noninteractive administrator bootstrap`
+- `66c2150 docs: record final integration verification`
 
 ## Last known good state
 
