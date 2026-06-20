@@ -81,15 +81,12 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Current work in progress
 
-- Final Git deployment and branch cleanup after successful SMTP completion and
-  correction of the production static-file alias.
+- Final merged-main deployment verification and branch cleanup.
 
 ## Remaining work
 
 - Salling offer synchronization remains blocked by missing Anti Food Waste
   permission on the configured token.
-- Commit and deploy the static-file configuration correction and final
-  operational documentation.
 
 ## Owner questions
 
@@ -199,17 +196,19 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - `6845283 fix: add host-scoped SMTP certificate trust`
 - `10501f3 fix: secure noninteractive administrator bootstrap`
 - `66c2150 docs: record final integration verification`
+- `fc8ea73 fix: complete SMTP delivery and static serving`
 
 ## Last known good state
 
-- Commit `10501f3` on `codex/production-mealhouse` is deployed.
+- Commit `fc8ea73` is merged locally into `main`; final documentation and remote
+  deployment verification remain.
 - Production HTTP responds successfully.
 - Application, worker, database, Nginx, scheduler, and backup timer active.
 - Backup `20260620T175215Z` and snapshot `pre-91ac425-20260620` are verified.
 
 ## Exact next steps
 
-1. Commit, push, and deploy the final static/documentation changes.
+1. Push and deploy final `main`, then verify Git and production state.
 2. Grant Salling Anti Food Waste production permission and rerun
    `manage.py verify_salling --zip 9000`.
 3. Enable and synchronize the provider only after step 2 succeeds.
