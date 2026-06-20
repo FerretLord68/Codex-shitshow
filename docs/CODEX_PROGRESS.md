@@ -41,7 +41,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Fixed active sessions so suspended users immediately lose access.
 - Expanded integration and deployment documentation.
 - Current feature/security suite passes: 40 tests.
-- Final current suite passes: 42 tests.
+- Final current suite passes: 43 tests.
 - Live Playwright/axe checks pass on landing, login, registration, password reset, and privacy pages: 5 passed.
 - Created production backup `/var/lib/mealhouse/backups/20260620T175215Z`.
 - Created LXD rollback snapshot `mealhouse-prod/pre-91ac425-20260620`.
@@ -54,6 +54,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Synchronized the clean production checkout to exact commit `8b809d4821f67a202663bea0270e91af6539fbce`.
 - First reboot audit found and corrected two persistence defects: DHCP broadcast was not covered by the original UFW destination-specific rule, and `br_netfilter` was not loaded before LXD. The container recovered with its reserved IP, public HTTP/HTTPS returned 200, readiness passed, and DNS/HTTPS/SMTP egress passed.
 - Second controlled reboot verified the fixes persist from boot: zero failed units on host/container; UFW active; `br_netfilter` and bridge sysctls loaded; container received `10.241.159.210`; Nginx, PostgreSQL, web, worker, scheduler, and backup timer active/enabled; readiness healthy; host/public HTTP 200; Salling DNS/HTTPS reachable; SMTP 587 reachable.
+- Added sanitized `verify_salling` command for stores authentication and optional Anti Food Waste verification.
 
 ## Current work in progress
 
@@ -90,7 +91,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - SMTP TCP connectivity: ports 25, 465, and 587 reachable.
 - SMTP STARTTLS/implicit TLS: negotiation succeeds, certificate verification fails because the presented certificate is self-signed.
 - Ruff: passed.
-- Pytest: 42 passed.
+- Pytest: 43 passed.
 - Playwright/axe live accessibility suite: 5 passed.
 - Python dependency audit: no known vulnerabilities.
 - Node dependency audit: no vulnerabilities.

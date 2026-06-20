@@ -179,7 +179,18 @@ class SallingClient:
             return SallingResult(items, cache_hit=False)
 
     def stores(self, **filters):
-        allowed = {"zip", "city", "country", "street", "brand", "geo", "radius", "hourType", "fields"}
+        allowed = {
+            "zip",
+            "city",
+            "country",
+            "street",
+            "brand",
+            "geo",
+            "radius",
+            "hourType",
+            "fields",
+            "per_page",
+        }
         params = {key: value for key, value in filters.items() if key in allowed and value not in (None, "")}
         params.setdefault("per_page", 100)
 

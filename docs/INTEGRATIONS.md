@@ -31,6 +31,14 @@ Synchronization runs through the database-backed worker and records a sync run. 
 
 For local tests, mocked HTTP transports cover success, empty data, pagination, invalid data, missing optional fields, authorization failures, rate limiting, timeout/network/5xx errors, cache behavior, concurrency, normalization, and stale-cache degradation. Tests never call the live API.
 
+Verify stores authentication:
+
+```bash
+sudo -u www-data /srv/mealhouse/.venv/bin/python /srv/mealhouse/manage.py verify_salling
+```
+
+Add `--zip 8000` (or the configured target ZIP) to verify Anti Food Waste access and normalization too. Output contains counts and error classes only, never tokens or upstream response bodies.
+
 Other supported providers:
 
 - Mock provider: synthetic development/test data, disabled in production.

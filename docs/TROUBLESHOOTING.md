@@ -26,8 +26,7 @@ If public links use the wrong host, verify `APP_URL`. If client IPs or HTTPS det
 
 ```bash
 sudo -u www-data /srv/mealhouse/.venv/bin/python manage.py verify_smtp
-sudo -u www-data /srv/mealhouse/.venv/bin/python manage.py shell -c \
-  'from offers.salling import SallingClient; print(len(SallingClient().stores(country="dk").items))'
+sudo -u www-data /srv/mealhouse/.venv/bin/python manage.py verify_salling --zip 8000
 ```
 
 `SSLCertVerificationError` from SMTP means the server certificate chain must be fixed. Do not set an unverified SSL context. `SallingAuthenticationError` means the token is absent, invalid, not propagated yet, or lacks the selected API.

@@ -253,3 +253,16 @@ def test_offer_image_proxy_validates_content(client, user):
         )
     assert response.status_code == 200
     assert response["Content-Type"] == "image/jpeg"
+
+
+def test_verify_salling_command_is_sanitized(capsys):
+    result = type("Result", (), {"items": [], "cache_hit": False, "degraded": False})()
+    with (
+        patch("offers.management.commands.verify_salling.SallingClient") as client_class,
+    ):
+        client_class.return_value.stores.return_value = result
+        client_class.return_value.food_waste.return_value = result
+        call_command("verify_salling", zip_code="8000")
+    output = capsys.readouterr().out
+    assert "verification succeeded" in output
+    assert "token" not in output.lower()
