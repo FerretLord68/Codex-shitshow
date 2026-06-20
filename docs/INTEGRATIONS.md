@@ -27,7 +27,10 @@ Successful calls are cached for five minutes by default. A stale cache copy is r
 
 Offer images are fetched through an authenticated MealHouse endpoint with an HTTPS hostname allowlist, response-size limit, content-type validation, no redirects, and private caching. Add image hosts only after confirming them in official API responses.
 
-Synchronization runs through the database-backed worker and records a sync run. The Salling provider is seeded disabled with ZIP `8000`; an administrator must change the target area and enable it after installing a token. Historical prices are retained. Automatic name matching stores confidence; low-confidence matches require review.
+Synchronization runs through the database-backed worker and records a sync run.
+Production uses ZIP `9000`; enablement requires successful Stores and Anti Food
+Waste verification first. Historical prices are retained. Automatic name
+matching stores confidence; low-confidence matches require review.
 
 For local tests, mocked HTTP transports cover success, empty data, pagination, invalid data, missing optional fields, authorization failures, rate limiting, timeout/network/5xx errors, cache behavior, concurrency, normalization, and stale-cache degradation. Tests never call the live API.
 

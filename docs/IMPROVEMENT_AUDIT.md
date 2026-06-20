@@ -76,6 +76,5 @@ Date: 2026-06-20
 
 ## Owner decisions required
 
-- Anti Food Waste permission for the Salling token; Stores access succeeds.
 - Data-retention policy and legal contact wording.
 - Whether SSH password authentication may be disabled after key-only access is independently tested.

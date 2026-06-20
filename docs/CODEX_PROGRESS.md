@@ -85,15 +85,13 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Remaining work
 
-- Salling offer synchronization remains blocked by missing Anti Food Waste
-  permission on the configured token.
+- Deploy final `main`, complete post-deployment checks, and clean obsolete merged
+  branches.
 
 ## Owner questions
 
-- Grant Anti Food Waste API permission to the Salling token or provide a token
-  with production-environment access. Stores API authentication succeeds; the
-  API still explicitly reports that the current token scope does not grant
-  `prod` access to `GET /v1/food-waste/`.
+- None blocking deployment. The root-only temporary administrator password file
+  should be removed after the owner completes the delivered password reset.
 
 ## Assumptions made
 
@@ -119,9 +117,16 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - SMTP test message: accepted by the server.
 - Password-reset request: delivered by the worker in one attempt; no pending,
   running, failed, or dead mail job remains.
-- Salling Stores API: authenticated successfully.
-- Salling Anti Food Waste for postal code 9000: `403 Forbidden`; provider kept
-  disabled with configuration updated to ZIP 9000.
+- Salling Stores API: authenticated successfully with the replacement token;
+  794 normalized stores returned.
+- Salling Anti Food Waste for postal code 9000: authenticated successfully;
+  396 normalized offers returned.
+- Salling provider: enabled with ZIP 9000 and remains enabled across targeted
+  web/worker restart.
+- First production synchronization: one successful run, 396 imported offers,
+  zero rejected, zero failed runs, 10 persisted stores, and no duplicate offer
+  keys. The authenticated offers page returns `200` and renders synchronized
+  data.
 - Administrator: existing `frederikjuulolsen@gmail.com` account promoted;
   active, verified, staff, and superuser flags confirmed.
 - Administrator login: authenticated successfully and redirected to the
@@ -145,7 +150,7 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Tests still required
 
-- Repeat Salling Anti Food Waste verification after scope is granted.
+- Final post-deployment verification against merged `main`.
 
 ## Deployment state
 
@@ -209,6 +214,5 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 ## Exact next steps
 
 1. Push and deploy final `main`, then verify Git and production state.
-2. Grant Salling Anti Food Waste production permission and rerun
-   `manage.py verify_salling --zip 9000`.
+2. Clean only branches whose commits are fully reachable from final `main`.
 3. Enable and synchronize the provider only after step 2 succeeds.

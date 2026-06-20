@@ -16,8 +16,8 @@ If public links use the wrong host, verify `APP_URL`. If client IPs or HTTPS det
 
 - SMTP uses the dedicated certificate trust described in `INTEGRATIONS.md` and
   requires the full login `mealhouse@taxoz.org`.
-- The Salling Group provider remains disabled when the token lacks Anti Food
-  Waste permission, even if the same token can access the Stores API.
+- A Salling `403` can be endpoint-specific: verify that the token grants
+  production-environment access to both Stores and Anti Food Waste.
 - Nutrition and prices require curated source data for complete totals.
 - Public recipes are schema-ready but public publishing is disabled by default.
 - Two-factor schema and feature flag architecture exist, but enrollment is disabled until a reviewed TOTP/WebAuthn flow is added.
