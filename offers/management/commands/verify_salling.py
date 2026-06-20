@@ -12,7 +12,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             client = SallingClient()
-            stores = client.stores(country="dk", fields="id,name", per_page=1)
+            stores = client.stores(country="dk", fields="id,name", per_page=100)
             self.stdout.write(
                 f"Stores API: authenticated; received {len(stores.items)} normalized result(s)."
             )

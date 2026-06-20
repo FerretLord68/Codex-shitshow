@@ -1,4 +1,5 @@
 import getpass
+from pathlib import Path
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -14,12 +15,19 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--email", default="frederikjuulolsen@gmail.com")
+        parser.add_argument("--password-file")
+        parser.add_argument("--yes-upgrade", action="store_true")
+        parser.add_argument("--non-interactive", action="store_true")
 
     def handle(self, *args, **options):
         if User.objects.filter(is_superuser=True).exists():
             raise CommandError("Administrator bootstrap is already complete.")
         default_email = options["email"]
-        entered = input(f"Administrator e-mail [{default_email}]: ").strip()
+        entered = (
+            ""
+            if options["non_interactive"]
+            else input(f"Administrator e-mail [{default_email}]: ").strip()
+        )
         email = User.objects.normalize_email(entered or default_email).strip().lower()
         existing = User.objects.filter(email=email).first()
         candidate = existing or User(email=email, username=email, display_name="Administrator")
@@ -29,11 +37,29 @@ class Command(BaseCommand):
             except ValidationError as error:
                 raise CommandError(" ".join(error.messages)) from error
         if existing:
-            answer = input("A normal user exists for this address. Upgrade it to administrator? [y/N]: ")
-            if answer.strip().lower() not in {"y", "yes"}:
+            approved = options["yes_upgrade"]
+            if not approved and not options["non_interactive"]:
+                answer = input(
+                    "A normal user exists for this address. Upgrade it to administrator? [y/N]: "
+                )
+                approved = answer.strip().lower() in {"y", "yes"}
+            if not approved:
                 raise CommandError("Administrator bootstrap cancelled.")
-        password = getpass.getpass("Strong password: ")
-        confirmation = getpass.getpass("Confirm password: ")
+        if options["password_file"]:
+            password_path = Path(options["password_file"])
+            try:
+                mode = password_path.stat().st_mode & 0o777
+                if mode & 0o077:
+                    raise CommandError("Password file must not be accessible by group or others.")
+                password = password_path.read_text().rstrip("\r\n")
+            except OSError as error:
+                raise CommandError("Unable to read password file.") from error
+            confirmation = password
+        elif options["non_interactive"]:
+            raise CommandError("--non-interactive requires --password-file.")
+        else:
+            password = getpass.getpass("Strong password: ")
+            confirmation = getpass.getpass("Confirm password: ")
         if password != confirmation:
             raise CommandError("Passwords do not match.")
         try:

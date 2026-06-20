@@ -10,6 +10,7 @@ import pytest
 from django.core import mail
 from django.core.cache import cache
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.urls import reverse
 
 from accounts.models import User
@@ -235,6 +236,38 @@ def test_admin_bootstrap_upgrades_existing_user(user):
     user.refresh_from_db()
     assert user.is_staff and user.is_superuser and user.is_email_verified
     assert user.check_password("A much stronger admin password 74!")
+
+
+@pytest.mark.django_db
+def test_admin_bootstrap_accepts_restricted_password_file(user, tmp_path):
+    password_file = tmp_path / "admin-password"
+    password_file.write_text("A strong file-based admin password 85!")
+    password_file.chmod(0o600)
+    call_command(
+        "create_admin",
+        email=user.email,
+        password_file=str(password_file),
+        yes_upgrade=True,
+        non_interactive=True,
+    )
+    user.refresh_from_db()
+    assert user.is_staff and user.is_superuser
+    assert user.check_password("A strong file-based admin password 85!")
+
+
+@pytest.mark.django_db
+def test_admin_bootstrap_rejects_exposed_password_file(user, tmp_path):
+    password_file = tmp_path / "admin-password"
+    password_file.write_text("A strong file-based admin password 85!")
+    password_file.chmod(0o644)
+    with pytest.raises(CommandError, match="must not be accessible"):
+        call_command(
+            "create_admin",
+            email=user.email,
+            password_file=str(password_file),
+            yes_upgrade=True,
+            non_interactive=True,
+        )
 
 
 @pytest.mark.django_db
