@@ -14,8 +14,10 @@ If public links use the wrong host, verify `APP_URL`. If client IPs or HTTPS det
 
 ## Known limitations
 
-- SMTP cannot be enabled until the mail server presents a certificate trusted by the system CA store and a rotated password/sender are installed.
-- The Salling Group provider remains disabled until a protected API token is installed and its target ZIP/geolocation is confirmed.
+- SMTP uses the dedicated certificate trust described in `INTEGRATIONS.md`.
+  Authentication code `535` means the configured username/password was rejected.
+- The Salling Group provider remains disabled when the token lacks Anti Food
+  Waste permission, even if the same token can access the Stores API.
 - Nutrition and prices require curated source data for complete totals.
 - Public recipes are schema-ready but public publishing is disabled by default.
 - Two-factor schema and feature flag architecture exist, but enrollment is disabled until a reviewed TOTP/WebAuthn flow is added.
@@ -29,4 +31,8 @@ sudo -u www-data /srv/mealhouse/.venv/bin/python manage.py verify_smtp
 sudo -u www-data /srv/mealhouse/.venv/bin/python manage.py verify_salling --zip 8000
 ```
 
-`SSLCertVerificationError` from SMTP means the server certificate chain must be fixed. Do not set an unverified SSL context. `SallingAuthenticationError` means the token is absent, invalid, not propagated yet, or lacks the selected API.
+`SSLCertVerificationError` from SMTP means the pinned certificate changed,
+expired, or no longer matches `mail.taxoz.org`. Revalidate and rotate the
+host-specific PEM; do not set an unverified SSL context.
+`SallingAuthenticationError` means the token is absent or invalid.
+`SallingPermissionError` means it lacks the selected API permission.

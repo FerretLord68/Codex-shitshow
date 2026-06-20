@@ -51,6 +51,19 @@ lxc exec mealhouse-prod -- sudo -u www-data /srv/mealhouse/.venv/bin/python /srv
 
 The default address is `frederikjuulolsen@gmail.com`. The command validates and normalizes the address, hides and confirms the password, applies the Django password policy and Argon2id, and uses a transaction. If the account already exists, it requires explicit confirmation before upgrading it. It refuses to run after an administrator exists and writes a sanitized audit event.
 
+For automated bootstrap, create a root-owned mode `0600` password file outside
+the repository and run:
+
+```bash
+python manage.py create_admin \
+  --email frederikjuulolsen@gmail.com \
+  --password-file /protected/path/admin-password \
+  --yes-upgrade --non-interactive
+```
+
+The command refuses password files readable by group or others and never prints
+the password or hash.
+
 ## Protected integration values
 
 Edit `/etc/mealhouse/mealhouse.env` as root. Never place real values in the repository:

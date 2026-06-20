@@ -42,7 +42,8 @@ Authentication forms, household invitations, all object identifiers, recipe impo
 
 - The external proxy and its TLS/firewall configuration are outside this host.
 - SSH password authentication remains enabled because key-only access has not been independently verified; migrate to tested key-only access before disabling it.
-- E-mail spool mode is operationally safe but does not deliver messages until SMTP is configured.
+- SMTP uses a dedicated exact-certificate trust store restricted to
+  `mail.taxoz.org`; it does not modify global TLS trust.
 - Nutrition, price, and unit-conversion source quality varies.
 - Python process isolation is not a substitute for host patching.
 - Application-level append-only audit controls do not prevent a database superuser from altering records; export logs to immutable storage for stronger assurance.

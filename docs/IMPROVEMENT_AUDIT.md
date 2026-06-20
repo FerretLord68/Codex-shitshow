@@ -4,9 +4,14 @@ Date: 2026-06-20
 
 ## Critical
 
-- **Email delivery trust:** SMTP submission is reachable, but `mail.taxoz.org` presents a self-signed certificate. MealHouse now enforces normal certificate validation and provides a sanitized verification command. Remaining action: replace the mail certificate and install a rotated password and approved sender.
+- **Email delivery trust:** SMTP submission uses a self-signed certificate. The
+  exact certificate was validated against the owner-provided SPKI and is trusted
+  only by MealHouse's dedicated SMTP context. Hostname and expiry checks remain
+  enabled. Remaining action: replace the rejected SMTP credential.
 - **Host ingress policy:** the host previously had no active firewall. Persistent UFW now denies unsolicited input/routing and permits SSH, the known proxy-to-MealHouse HTTP path, required LXD DNS/DHCP, and container egress.
-- **Administrator ownership:** no administrator existed and the requested email already belonged to a normal user. The new transactional bootstrap safely upgrades that exact account without duplication. Remaining action: the owner must enter a new password interactively.
+- **Administrator ownership:** the requested existing user was transactionally
+  promoted without duplication. A strong random temporary password is stored
+  in a root-only local file, and password-reset role preservation is tested.
 
 ## High value completed
 
@@ -70,7 +75,8 @@ Date: 2026-06-20
 
 ## Owner decisions required
 
-- Final authorized `taxoz.org` sender address.
-- Target ZIP/geolocation/store scope for Salling synchronization.
+- Correct SMTP credential after authenticated submission rejected the configured
+  value on ports 587 and 465.
+- Anti Food Waste permission for the Salling token; Stores access succeeds.
 - Data-retention policy and legal contact wording.
 - Whether SSH password authentication may be disabled after key-only access is independently tested.

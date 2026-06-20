@@ -81,22 +81,22 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Current work in progress
 
-- Deploying the SMTP trust backend and completed environment, then verifying
-  SMTP delivery, Salling, and administrator creation.
+- Final documentation, commit, branch push, and merge to `main`.
 
 ## Remaining work
 
-- Deploy the protected environment and SMTP certificate to the container.
-- Verify SMTP authentication, test delivery, and password-reset delivery.
-- Verify Salling for postal code 9000 and provider synchronization.
-- Create or promote the first administrator and verify role preservation.
-- Run the complete final validation matrix.
 - Push the working branch, merge to `main`, verify, and push `main`.
+- SMTP test delivery and real reset mail remain blocked by rejected credentials.
+- Salling offer synchronization remains blocked by missing Anti Food Waste
+  permission on the configured token.
 
 ## Owner questions
 
-- None currently. The sender, SMTP credentials, Salling token and target postal
-  code are configured, and administrator creation is authorized.
+- Replace/correct the SMTP credential: authentication returns `535` on both
+  ports 587 and 465.
+- Grant Anti Food Waste API permission to the Salling token or provide a token
+  with that permission. Stores API authentication succeeds; food waste returns
+  `403`.
 
 ## Assumptions made
 
@@ -115,7 +115,21 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Nginx configuration test: passed.
 - HTTP request to `192.168.1.112` with canonical host: `200 OK`.
 - SMTP TCP connectivity: ports 25, 465, and 587 reachable.
-- SMTP STARTTLS/implicit TLS: negotiation succeeds, certificate verification fails because the presented certificate is self-signed.
+- SMTP STARTTLS/implicit TLS: verified through the dedicated exact-certificate
+  trust context; incorrect hostname verification fails.
+- SMTP authentication: rejected with code `535` on ports 587 and 465.
+- Salling Stores API: authenticated successfully.
+- Salling Anti Food Waste for postal code 9000: `403 Forbidden`; provider kept
+  disabled with configuration updated to ZIP 9000.
+- Administrator: existing `frederikjuulolsen@gmail.com` account promoted;
+  active, verified, staff, and superuser flags confirmed.
+- Temporary administrator password: generated locally and stored at
+  `/etc/mealhouse/admin-temporary-password`, mode `0600`, root-owned.
+- Ruff: passed.
+- Pytest: 48 passed using the pre-created disposable test database.
+- Playwright/axe live accessibility suite: 5 passed.
+- Python dependency audit: no known vulnerabilities.
+- Node dependency audit: no vulnerabilities.
 - Ruff: passed.
 - Pytest: 43 passed.
 - Playwright/axe live accessibility suite: 5 passed.
@@ -125,14 +139,16 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 
 ## Tests still required
 
-- SMTP authentication and optional delivery.
-- Salling API live authentication and production integration.
+- Repeat SMTP authentication and send the real test/reset messages after the
+  credential is corrected.
+- Repeat Salling Anti Food Waste verification after scope is granted.
 
 ## Deployment state
 
 - Production is live and returns HTTP 200 through the host LAN address.
 - Container services Nginx, PostgreSQL, `mealhouse-web`, `mealhouse-worker`, scheduler timer, and backup timer are active.
-- Production source under `/srv/mealhouse` is a clean Git checkout at `6ffefd1`.
+- Production source under `/srv/mealhouse` is a detached clean checkout at
+  `10501f3`; the final documentation/test commit remains to deploy.
 
 ## System files changed
 
@@ -141,6 +157,11 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - Container systemd units: `/etc/systemd/system/mealhouse-{web,worker,scheduler}.service`.
 - Container Nginx site: `/etc/nginx/sites-available/mealhouse`.
 - Container configuration backup: `/var/lib/mealhouse/config-backups/20260620T1802Z`.
+- Host protected environment: `/etc/mealhouse/mealhouse.env`, mode `0600`.
+- Container protected environment: `/etc/mealhouse/mealhouse.env`, mode `0640`,
+  owner `root:www-data`.
+- SMTP certificate: `/etc/mealhouse/certs/mail.taxoz.org.pem` on host and
+  container.
 
 ## Service changes
 
@@ -167,17 +188,19 @@ Finish and production-harden MealHouse, including SMTP, Salling Group, administr
 - `8b809d4 fix: improve provider reliability and record audit`
 - `89776f9 docs: record pre-reboot production state`
 - `6ffefd1 fix: persist LXD networking across reboot`
+- `6845283 fix: add host-scoped SMTP certificate trust`
+- `10501f3 fix: secure noninteractive administrator bootstrap`
 
 ## Last known good state
 
-- Commit `6ffefd1` on `codex/production-mealhouse` is deployed and verified across reboot.
+- Commit `10501f3` on `codex/production-mealhouse` is deployed.
 - Production HTTP responds successfully.
 - Application, worker, database, Nginx, scheduler, and backup timer active.
 - Backup `20260620T175215Z` and snapshot `pre-91ac425-20260620` are verified.
 
 ## Exact next steps
 
-1. Commit and deploy the SMTP trust backend.
-2. Synchronize the protected environment and certificate to the container.
-3. Verify SMTP, Salling, database, migrations, and administrator workflows.
-4. Run final checks, push the branch, merge to `main`, and verify remote `main`.
+1. Commit the final tests and documentation.
+2. Push the working branch, merge to `main`, rerun checks, and push `main`.
+3. Repeat SMTP and Anti Food Waste verification after the two external
+   credential/scope issues are corrected.

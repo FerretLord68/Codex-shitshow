@@ -13,7 +13,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.urls import reverse
 
-from accounts.models import User
+from accounts.models import SecurityToken, User
 from notifications.backends.smtp import EmailBackend
 from notifications.mail import PermanentMailDeliveryError, deliver
 from offers.salling import (
@@ -268,6 +268,25 @@ def test_admin_bootstrap_rejects_exposed_password_file(user, tmp_path):
             yes_upgrade=True,
             non_interactive=True,
         )
+
+
+@pytest.mark.django_db
+def test_password_reset_preserves_administrator_role(client, user):
+    user.is_staff = True
+    user.is_superuser = True
+    user.save(update_fields=["is_staff", "is_superuser"])
+    token = SecurityToken.issue(user, SecurityToken.Purpose.PASSWORD_RESET)
+    response = client.post(
+        f"/account/reset/{token}/",
+        {
+            "new_password1": "A new strong administrator password 96!",
+            "new_password2": "A new strong administrator password 96!",
+        },
+    )
+    assert response.status_code == 302
+    user.refresh_from_db()
+    assert user.is_staff and user.is_superuser
+    assert user.check_password("A new strong administrator password 96!")
 
 
 @pytest.mark.django_db
